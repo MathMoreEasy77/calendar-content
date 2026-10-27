@@ -1027,52 +1027,54 @@ const DEFAULT_FORMATS = [
 // NOTION IMPORT — date pre-încărcate la prima deschidere
 // ============================================================
 const NOTION_POSTS = [
-  { id:'n1',  date:'2026-10-31', title:'EN: recapitulare – 5 capcane clasice la Evaluarea Națională', note:'Seara 31 oct. Format recapitulativ cu potential mare de distribuiri.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n2',  date:'2026-10-31', title:'BAC: șiruri și progresii – suma primilor n termeni ai unei progresii aritmetice', note:'Prânz 31 oct. Progresiile sunt capitol standard BAC.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n3',  date:'2026-10-31', title:'Clasa a VII-a: funcția de gradul I – grafic și intercept', note:'Dimineața 31 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n4',  date:'2026-10-30', title:'EN: Subiectul I complet – rezolvare rapidă fără să pierzi puncte', note:'Seara 30 oct. Strategia de examen, util și pentru părinți.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n5',  date:'2026-10-30', title:'BAC: integrale definite – calculul ariei dintre curbă și axa Ox', note:'Prânz 30 oct. Integralele definite și aria sunt Subiectul III tipic cls XII.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n6',  date:'2026-10-30', title:'Clasa a V-a: cmmdc și cmmmc – aplicații și diferența dintre ele', note:'Dimineața 30 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n7',  date:'2026-10-29', title:'EN: media aritmetică și geometrică – exercițiu cu capcană din Subiectul I', note:'Seara 29 oct.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n8',  date:'2026-10-29', title:'BAC: metoda de rezolvare a sistemelor de 3 ecuații cu 3 necunoscute', note:'Prânz 29 oct.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n9',  date:'2026-10-29', title:'Clasa a VII-a: inecuații de gradul I – schimbarea sensului la înmulțirea cu negativ', note:'Dimineața 29 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n10', date:'2026-10-28', title:'EN: probabilități – definiția clasică și exerciții cu bile din urnă', note:'Seara 28 oct.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n11', date:'2026-10-28', title:'BAC: limite de funcții – forma 0/0 și metoda de rezolvare', note:'Prânz 28 oct.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n12', date:'2026-10-28', title:'Clasa a V-a: cifrele romane și sistemul zecimal – conversie și aplicații', note:'Dimineața 28 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n13', date:'2026-10-27', title:'EN: unghiuri înscrise în cerc – metoda deplasării unui punct pe circumferință', note:'Seara 27 oct.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n14', date:'2026-10-27', title:'BAC: derivata produsului – regula și greșelile clasice', note:'Prânz 27 oct.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n15', date:'2026-10-27', title:'Clasa a VI-a: procente – calculul procentului dintr-un număr și aplicații reale', note:'Dimineața 27 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n16', date:'2026-10-27', title:'Unghiuri: truc de verificare pentru bisectoare', note:'', pillar:2, format:'TikTok', platforms:['tt','ig'], status:'rafinat' },
-  { id:'n17', date:'2026-10-26', title:'EN: parabola și graficul funcției de gradul II – citirea informațiilor din grafic', note:'Seara 26 oct.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n18', date:'2026-10-26', title:'BAC: trigonometrie – sin și cos pentru unghiuri remarcabile, greșelile tipice', note:'Prânz 26 oct.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n19', date:'2026-10-26', title:'Clasa a VII-a: ecuații de gradul I cu paranteze și coeficienți fracționari', note:'Dimineața 26 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n20', date:'2026-10-26', title:'Ce înseamnă de fapt să înțelegi matematica', note:'', pillar:3, format:'Reel', platforms:['ig','fb'], status:'rafinat' },
-  { id:'n21', date:'2026-10-25', title:'Clasa a VII-a: exercițiu cu radicali', note:'TikTok duminică 25 octombrie, 18:30.', pillar:2, format:'TikTok', platforms:['tt'], status:'rafinat' },
-  { id:'n22', date:'2026-10-25', title:'EN: teorema lui Pitagora – aplicații și capcane frecvente la EN', note:'Seara 25 oct.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n23', date:'2026-10-25', title:'BAC: capcană la funcții – Subiectul I, exercițiul 2', note:'TikTok duminică 25 octombrie, 11:00.', pillar:1, format:'TikTok', platforms:['tt'], status:'rafinat' },
-  { id:'n24', date:'2026-10-25', title:'Clasa a V-a: fracții – amplificarea și simplificarea', note:'Dimineața 25 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n25', date:'2026-10-24', title:'Clasa a V-a: teorema împărțirii cu rest', note:'TikTok sâmbătă 24 octombrie, 18:30.', pillar:2, format:'TikTok', platforms:['tt'], status:'rafinat' },
-  { id:'n26', date:'2026-10-24', title:'EN: sistemele de ecuații de gradul I – metoda substituției vs eliminării', note:'Seara 24 oct.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n27', date:'2026-10-24', title:'BAC: funcții – monotonia și determinarea intervalelor de creștere sau descreștere', note:'Prânz 24 oct.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n28', date:'2026-10-24', title:'Evaluare Națională: problemă cu bănci/ecuații – Subiectul III, ex. 1', note:'TikTok sâmbătă 24 octombrie, 11:00.', pillar:0, format:'TikTok', platforms:['tt'], status:'rafinat' },
-  { id:'n29', date:'2026-10-24', title:'Clasa a VI-a: împărțirea cu rest la numerele întregi', note:'Dimineața 24 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n30', date:'2026-10-23', title:'Clasa a VI-a: divizori și expresia 7/(2n+1)', note:'TikTok vineri 23 octombrie, 18:30.', pillar:2, format:'TikTok', platforms:['tt'], status:'rafinat' },
-  { id:'n31', date:'2026-10-23', title:'EN: aria triunghiului cu formula sinusului', note:'Seara 23 oct.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n32', date:'2026-10-23', title:'BAC: progresii – exercițiu de Subiectul I', note:'TikTok vineri 23 octombrie, 11:00.', pillar:1, format:'TikTok', platforms:['tt'], status:'rafinat' },
-  { id:'n33', date:'2026-10-23', title:'Clasa a V-a: proprietățile înmulțirii – scurtături de calcul', note:'Dimineața 23 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n34', date:'2026-10-22', title:'Clasa a VIII-a: inecuație cu cerință pe Z', note:'TikTok joi 22 octombrie, 18:30.', pillar:0, format:'TikTok', platforms:['tt'], status:'rafinat' },
-  { id:'n35', date:'2026-10-22', title:'EN: ecuații cu fracții raționale – condiția de existență uitată', note:'Seara 22 oct.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n36', date:'2026-10-22', title:'BAC: ecuația de gradul II – greșeala la discriminant', note:'Prânz 22 oct.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n37', date:'2026-10-22', title:'Evaluare Națională: geometrie grilă cu centrul de greutate', note:'TikTok joi 22 octombrie, 11:00.', pillar:0, format:'TikTok', platforms:['tt'], status:'rafinat' },
-  { id:'n38', date:'2026-10-22', title:'Clasa a VII-a: radicali – simplificarea expresiilor cu radicali', note:'Dimineața 22 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n39', date:'2026-10-21', title:'Clasa a V-a: suma lui Gauss', note:'TikTok miercuri 21 octombrie, 18:30.', pillar:2, format:'TikTok', platforms:['tt'], status:'rafinat' },
-  { id:'n40', date:'2026-10-21', title:'EN: puteri cu exponent negativ – capcana la numere raționale', note:'Seara 21 oct.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n41', date:'2026-10-21', title:'BAC: capcană la Subiectul I cu fracții și ordinea operațiilor', note:'TikTok miercuri 21 octombrie, 11:00.', pillar:1, format:'TikTok', platforms:['tt'], status:'rafinat' },
-  { id:'n42', date:'2026-10-21', title:'Clasa a VI-a: unghiuri și proprietățile lor', note:'Dimineața 21 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
-  { id:'n43', date:'2026-10-20', title:'Clasa a VII-a: exercițiu cu linia mijlocie', note:'TikTok marți 20 octombrie, 18:30.', pillar:2, format:'TikTok', platforms:['tt'], status:'rafinat' },
-  { id:'n44', date:'2026-10-20', title:'Evaluare Națională: capcană la Subiectul I', note:'TikTok marți 20 octombrie, 11:00.', pillar:0, format:'TikTok', platforms:['tt'], status:'postat', link:'https://www.tiktok.com/@matematicamaiusoara/video/7698631031884123414' },
-  { id:'n45', date:'2026-10-19', title:'Clasa a VI-a: problemă la unghiuri înainte de lucrare', note:'TikTok luni 19 octombrie, 18:30.', pillar:2, format:'TikTok', platforms:['tt'], status:'rafinat' },
-  { id:'n46', date:'2026-10-19', title:'Provocare BAC: integrală cu radical de ordinul 7', note:'TikTok luni 19 octombrie, 11:00.', pillar:1, format:'TikTok', platforms:['tt'], status:'postat', link:'https://www.tiktok.com/@matematicamaiusoara/video/7698404721274440982' },
+  // ── NOV 3 (luni – ultima zi vacanță) ──────────────────────────────────────
+  { id:'n1',  date:'2026-11-03', title:'EN: recapitulare vacanță – 5 capcane clasice la Evaluarea Națională', note:'10:00. Rezumat săptămână vacanță, distribuibil maxim.', pillar:0, format:'TikTok', platforms:['tt','ig'], status:'idee' },
+  { id:'n2',  date:'2026-11-03', title:'BAC: șiruri și progresii – suma primilor n termeni ai unei progresii aritmetice', note:'19:00. Capitol standard BAC, capcanele tipice.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
+  // ── NOV 2 (duminică) ──────────────────────────────────────────────────────
+  { id:'n3',  date:'2026-11-02', title:'Cls VIII: corpuri în spațiu – suprafețe și volume, tabel recapitulativ', note:'10:00. Vacanță – moment bun pentru recapitulare geometrie spațiu.', pillar:2, format:'Carusel', platforms:['ig','fb'], status:'idee' },
+  { id:'n4',  date:'2026-11-02', title:'BAC: trigonometrie – sin și cos pentru unghiuri remarcabile, greșelile tipice', note:'19:00.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
+  // ── NOV 1 (sâmbătă) ───────────────────────────────────────────────────────
+  { id:'n5',  date:'2026-11-01', title:'EN: probabilități – definiția clasică și exerciții cu bile din urnă', note:'10:00. Subiect EN recurent, formulă simplă dar capcane la condiții.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n6',  date:'2026-11-01', title:'Ce înseamnă de fapt să înțelegi matematica', note:'19:00. Post motivațional/filozofic – bun pentru weekend vacanță.', pillar:3, format:'Reel', platforms:['ig','fb'], status:'idee' },
+  // ── OCT 31 (vineri – Halloween & vacanță) ─────────────────────────────────
+  { id:'n7',  date:'2026-10-31', title:'EN: Subiectul I complet – rezolvare rapidă fără să pierzi puncte', note:'10:00. Strategie de examen, util și pentru părinți în vacanță.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n8',  date:'2026-10-31', title:'Cls VII: ridicarea la putere a unui radical – capcana la exponent par', note:'19:00. Ultimul capitol studiat la cls VII, capcana clasică.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
+  // ── OCT 30 (joi) ──────────────────────────────────────────────────────────
+  { id:'n9',  date:'2026-10-30', title:'Cls VI: CMMDC și CMMMC – diferența și greșeala clasică la alegerea factorilor', note:'10:00. Capitol curent cls VI, confuzia între cei doi.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n10', date:'2026-10-30', title:'BAC: integrale definite – calculul ariei dintre curbă și axa Ox', note:'19:00. Subiectul III tipic cls XII.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
+  // ── OCT 29 (miercuri) ─────────────────────────────────────────────────────
+  { id:'n11', date:'2026-10-29', title:'Cls V: teorema împărțirii cu rest – verificare și capcana la câtul incomplet', note:'10:00. Ultimul capitol studiat la cls V, greșeala tipică.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n12', date:'2026-10-29', title:'EN: media aritmetică și geometrică – exercițiu cu capcană din Subiectul I', note:'19:00.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
+  // ── OCT 28 (marți – prima zi vacanță) ────────────────────────────────────
+  { id:'n13', date:'2026-10-28', title:'Vacanță = timp pentru matematică: cum să folosești săptămâna bine', note:'10:00. Post de deschidere vacanță – sfaturi practice pentru elevi și părinți.', pillar:3, format:'Reel', platforms:['ig','fb','tt'], status:'idee' },
+  { id:'n14', date:'2026-10-28', title:'Cls VIII: inecuații în R – greșeala la înmulțirea cu un număr negativ', note:'19:00. Capitol curent cls VIII, capcana clasică.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
+  // ── OCT 27 (luni) ─────────────────────────────────────────────────────────
+  { id:'n15', date:'2026-10-27', title:'EN: unghiuri înscrise în cerc – metoda deplasării unui punct pe circumferință', note:'10:00.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n16', date:'2026-10-27', title:'Unghiuri: truc de verificare pentru bisectoare', note:'19:00.', pillar:2, format:'TikTok', platforms:['tt','ig'], status:'rafinat' },
+  // ── OCT 26 (duminică) ─────────────────────────────────────────────────────
+  { id:'n17', date:'2026-10-26', title:'EN: parabola și graficul funcției de gradul II – citirea informațiilor din grafic', note:'10:00.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n18', date:'2026-10-26', title:'BAC: derivata produsului – regula și greșelile clasice', note:'19:00.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
+  // ── OCT 25 (sâmbătă) ──────────────────────────────────────────────────────
+  { id:'n19', date:'2026-10-25', title:'Cls VII: exercițiu cu radicali', note:'10:00.', pillar:2, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  { id:'n20', date:'2026-10-25', title:'BAC: capcană la funcții – Subiectul I, exercițiul 2', note:'19:00.', pillar:1, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  // ── OCT 24 (vineri) ───────────────────────────────────────────────────────
+  { id:'n21', date:'2026-10-24', title:'Cls V: teorema împărțirii cu rest', note:'10:00.', pillar:2, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  { id:'n22', date:'2026-10-24', title:'Evaluare Națională: problemă cu bănci/ecuații – Subiectul III, ex. 1', note:'19:00.', pillar:0, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  // ── OCT 23 (joi) ──────────────────────────────────────────────────────────
+  { id:'n23', date:'2026-10-23', title:'Cls VI: divizori și expresia 7/(2n+1)', note:'10:00.', pillar:2, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  { id:'n24', date:'2026-10-23', title:'BAC: progresii – exercițiu de Subiectul I', note:'19:00.', pillar:1, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  // ── OCT 22 (miercuri) ─────────────────────────────────────────────────────
+  { id:'n25', date:'2026-10-22', title:'Cls VIII: inecuație cu cerință pe Z', note:'10:00.', pillar:0, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  { id:'n26', date:'2026-10-22', title:'Evaluare Națională: geometrie grilă cu centrul de greutate', note:'19:00.', pillar:0, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  // ── OCT 21 (marți) ────────────────────────────────────────────────────────
+  { id:'n27', date:'2026-10-21', title:'Cls V: suma lui Gauss', note:'10:00.', pillar:2, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  { id:'n28', date:'2026-10-21', title:'BAC: capcană la Subiectul I cu fracții și ordinea operațiilor', note:'19:00.', pillar:1, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  // ── OCT 20 (luni) ─────────────────────────────────────────────────────────
+  { id:'n29', date:'2026-10-20', title:'Cls VII: exercițiu cu linia mijlocie', note:'10:00.', pillar:2, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  { id:'n30', date:'2026-10-20', title:'Evaluare Națională: capcană la Subiectul I', note:'19:00.', pillar:0, format:'TikTok', platforms:['tt'], status:'postat', link:'https://www.tiktok.com/@matematicamaiusoara/video/7698631031884123414' },
+  // ── OCT 19 (duminică) ─────────────────────────────────────────────────────
+  { id:'n31', date:'2026-10-19', title:'Cls VI: problemă la unghiuri înainte de lucrare', note:'10:00.', pillar:2, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  { id:'n32', date:'2026-10-19', title:'Provocare BAC: integrală cu radical de ordinul 7', note:'19:00.', pillar:1, format:'TikTok', platforms:['tt'], status:'postat', link:'https://www.tiktok.com/@matematicamaiusoara/video/7698404721274440982' },
 ];
 
 const NOTION_IDEI = [
