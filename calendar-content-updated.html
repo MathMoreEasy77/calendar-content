@@ -562,6 +562,7 @@ img { max-width: 100%; }
   <button class="tab-btn" data-tab="strategie">🎯 Strategie</button>
   <button class="tab-btn" data-tab="idei">💡 Idei</button>
   <button class="tab-btn active" data-tab="calendar">📅 Calendar</button>
+  <button class="tab-btn" data-tab="arhiva">📦 Arhivă</button>
   <button class="tab-btn" data-tab="analiza">📊 Analiză</button>
   <button class="tab-btn" data-tab="voce">🎙️ Voce & Script</button>
 </nav>
@@ -708,6 +709,55 @@ img { max-width: 100%; }
   <div style="margin-top:16px;" class="card">
     <div class="card-title">📋 Postările din această lună</div>
     <div id="calMonthList" style="display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     TAB: ARHIVĂ
+     ============================================================ -->
+<div class="tab-panel" id="tab-arhiva">
+  <div class="card" style="margin-bottom:16px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+      <div class="card-title" style="margin:0;">📦 Postări publicate</div>
+      <span id="arhivaCount" style="font-size:13px;color:var(--fg2);"></span>
+    </div>
+    <!-- Filtre -->
+    <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:16px;">
+      <input id="arhivaSearch" placeholder="🔍 Caută după titlu..." style="flex:1;min-width:180px;padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;background:var(--bg);color:var(--fg);" oninput="renderArhiva()">
+      <select id="arhivaPilon" onchange="renderArhiva()" style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;background:var(--bg);color:var(--fg);">
+        <option value="">Toate pilonii</option>
+      </select>
+      <select id="arhivaPlat" onchange="renderArhiva()" style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;background:var(--bg);color:var(--fg);">
+        <option value="">Toate platformele</option>
+        <option value="ig">Instagram</option>
+        <option value="tt">TikTok</option>
+        <option value="fb">Facebook</option>
+        <option value="yt">YouTube</option>
+      </select>
+      <select id="arhivaSort" onchange="renderArhiva()" style="padding:8px 12px;border:1px solid var(--border);border-radius:var(--radius);font-size:14px;background:var(--bg);color:var(--fg);">
+        <option value="date-desc">Dată ↓ (recente)</option>
+        <option value="date-asc">Dată ↑ (vechi)</option>
+        <option value="title">Titlu A–Z</option>
+        <option value="pilon">Pilon</option>
+      </select>
+    </div>
+    <!-- Tabel -->
+    <div style="overflow-x:auto;">
+      <table id="arhivaTable" style="width:100%;border-collapse:collapse;font-size:14px;">
+        <thead>
+          <tr style="border-bottom:2px solid var(--border);text-align:left;">
+            <th style="padding:8px 10px;color:var(--fg2);font-weight:600;white-space:nowrap;">Dată</th>
+            <th style="padding:8px 10px;color:var(--fg2);font-weight:600;">Titlu</th>
+            <th style="padding:8px 10px;color:var(--fg2);font-weight:600;white-space:nowrap;">Pilon</th>
+            <th style="padding:8px 10px;color:var(--fg2);font-weight:600;white-space:nowrap;">Format</th>
+            <th style="padding:8px 10px;color:var(--fg2);font-weight:600;white-space:nowrap;">Platforme</th>
+            <th style="padding:8px 10px;color:var(--fg2);font-weight:600;white-space:nowrap;">Acțiuni</th>
+          </tr>
+        </thead>
+        <tbody id="arhivaTbody"></tbody>
+      </table>
+      <div id="arhivaEmpty" hidden style="text-align:center;padding:32px;color:var(--fg2);font-size:14px;">Nicio postare publicată încă.</div>
+    </div>
   </div>
 </div>
 
@@ -1506,6 +1556,7 @@ document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.classList.add('active');
     document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
     if (btn.dataset.tab === 'calendar') renderCalendar();
+    if (btn.dataset.tab === 'arhiva') renderArhiva();
     if (btn.dataset.tab === 'analiza') renderAnalytics();
     if (btn.dataset.tab === 'idei') renderIdei();
     if (btn.dataset.tab === 'strategie') renderStrategie();
@@ -1887,7 +1938,7 @@ function renderCalendar() {
 }
 function makeDayCell(date, otherMonth, isToday) {
   const dateStr = formatDate(date);
-  const dayPosts = posts.filter(p => p.date === dateStr);
+  const dayPosts = posts.filter(p => p.date === dateStr && p.status !== 'postat');
   const cell = document.createElement('div');
   cell.className = `cal-day${otherMonth ? ' other-month' : ''}${isToday ? ' today' : ''}`;
   if (!otherMonth) cell.onclick = () => openCalModal(dateStr);
@@ -1918,7 +1969,7 @@ function formatDate(d) {
 }
 function renderCalMonthList() {
   const prefix = `${calYear}-${String(calMonth+1).padStart(2,'0')}`;
-  const mp = posts.filter(p => p.date && p.date.startsWith(prefix)).sort((a,b) => a.date.localeCompare(b.date));
+  const mp = posts.filter(p => p.date && p.date.startsWith(prefix) && p.status !== 'postat').sort((a,b) => a.date.localeCompare(b.date));
   const el = document.getElementById('calMonthList');
   if (!mp.length) { el.innerHTML = '<div style="color:var(--fg2);font-size:13px;padding:8px 0;">Nicio postare planificată în această lună.</div>'; return; }
   el.innerHTML = mp.map(p => {
@@ -2016,7 +2067,8 @@ function saveCalPost() {
   lsSet(LS.posts, posts);
   closeCalModal();
   renderCalendar();
-  showToast(editingPostId ? 'Postare actualizată ✓' : 'Postare adăugată ✓');
+  const isPosted = obj.status === 'postat';
+  showToast(isPosted ? 'Postare marcată ca publicată — vezi Arhivă 📦' : (editingPostId ? 'Postare actualizată ✓' : 'Postare adăugată ✓'));
 }
 function deleteCalPost() {
   if (!editingPostId) return;
@@ -2030,6 +2082,82 @@ function deleteCalPostDirect(id) {
   showToast('Postare ștearsă');
 }
 function closeCalModal() { document.getElementById('calModal').hidden = true; }
+
+// ============================================================
+// ARHIVĂ
+// ============================================================
+function renderArhiva() {
+  // Populează select pilon
+  const pilonSel = document.getElementById('arhivaPilon');
+  if (pilonSel.options.length <= 1) {
+    pillars.forEach((p, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = `${p.emoji} ${p.name}`;
+      pilonSel.appendChild(opt);
+    });
+  }
+
+  const search  = (document.getElementById('arhivaSearch').value || '').toLowerCase();
+  const pilon   = document.getElementById('arhivaPilon').value;
+  const plat    = document.getElementById('arhivaPlat').value;
+  const sortBy  = document.getElementById('arhivaSort').value;
+
+  let items = posts.filter(p => p.status === 'postat');
+
+  if (search) items = items.filter(p => p.title.toLowerCase().includes(search) || (p.note||'').toLowerCase().includes(search));
+  if (pilon !== '') items = items.filter(p => String(p.pillar) === pilon);
+  if (plat)  items = items.filter(p => (p.platforms||[]).includes(plat));
+
+  if (sortBy === 'date-desc') items.sort((a,b) => b.date.localeCompare(a.date));
+  else if (sortBy === 'date-asc') items.sort((a,b) => a.date.localeCompare(b.date));
+  else if (sortBy === 'title') items.sort((a,b) => a.title.localeCompare(b.title));
+  else if (sortBy === 'pilon') items.sort((a,b) => (a.pillar||0) - (b.pillar||0));
+
+  document.getElementById('arhivaCount').textContent = `${items.length} postare${items.length !== 1 ? 'i' : ''} publicate`;
+
+  const tbody = document.getElementById('arhivaTbody');
+  const empty = document.getElementById('arhivaEmpty');
+
+  if (!items.length) {
+    tbody.innerHTML = '';
+    empty.hidden = false;
+    return;
+  }
+  empty.hidden = true;
+
+  tbody.innerHTML = items.map(p => {
+    const pillar = pillars[p.pillar];
+    const platLabels = { ig:'📷 IG', tt:'🎵 TT', fb:'👥 FB', yt:'▶️ YT' };
+    const plats = (p.platforms||[]).map(pl => `<span style="display:inline-block;padding:2px 7px;border-radius:20px;font-size:11px;background:var(--surface2);margin:1px;">${platLabels[pl]||pl}</span>`).join(' ');
+    const pillarBadge = pillar
+      ? `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:12px;background:${pillar.color}22;color:${pillar.color};">${pillar.emoji} ${pillar.name}</span>`
+      : '<span style="color:var(--fg3);font-size:12px;">—</span>';
+    return `<tr style="border-bottom:1px solid var(--border);">
+      <td style="padding:10px 10px;white-space:nowrap;color:var(--fg2);font-size:13px;">${p.date}</td>
+      <td style="padding:10px 10px;">
+        <div style="font-weight:500;font-size:14px;">${escHtml(p.title)}</div>
+        ${p.note ? `<div style="color:var(--fg2);font-size:12px;margin-top:3px;">${escHtml(p.note)}</div>` : ''}
+      </td>
+      <td style="padding:10px 10px;">${pillarBadge}</td>
+      <td style="padding:10px 10px;font-size:13px;color:var(--fg2);">${escHtml(p.format||'—')}</td>
+      <td style="padding:10px 10px;">${plats||'—'}</td>
+      <td style="padding:10px 10px;white-space:nowrap;">
+        <button class="btn btn-secondary btn-sm" onclick="arhivaReactivate('${p.id}')" title="Mută înapoi în calendar">↩️</button>
+        <button class="btn btn-secondary btn-sm" onclick="openCalModal('${p.date}','${p.id}')" title="Editează">✏️</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function arhivaReactivate(id) {
+  const idx = posts.findIndex(p => p.id === id);
+  if (idx < 0) return;
+  posts[idx].status = 'planificat';
+  lsSet(LS.posts, posts);
+  renderArhiva();
+  showToast('Postare mutată înapoi în calendar ✓');
+}
 
 // ============================================================
 // ANALYTICS
