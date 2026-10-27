@@ -1,0 +1,2120 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="claude:viewport-fit-sides" content="cover">
+<title>Content Calendar MME</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap">
+<style>
+/* ============================================================
+   TOKENS
+   ============================================================ */
+:root {
+  --bg:        #f8f7f4;
+  --surface:   #ffffff;
+  --surface2:  #f0ede8;
+  --border:    #e2ddd6;
+  --fg:        #1a1714;
+  --fg2:       #5a5450;
+  --fg3:       #9a9490;
+  --accent:    #1D2AB6;
+  --accent-lt: #e8eaff;
+  --gold:      #c49a00;
+  --gold-lt:   #fff8d6;
+  --danger:    #c0392b;
+  --danger-lt: #fdecea;
+  --success:   #1a7a4a;
+  --success-lt:#e6f7ed;
+  --radius:    10px;
+  --shadow:    0 2px 12px rgba(0,0,0,.08);
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg:        #131210;
+    --surface:   #1e1c18;
+    --surface2:  #252320;
+    --border:    #3a3830;
+    --fg:        #f0ede8;
+    --fg2:       #a09a90;
+    --fg3:       #6a6460;
+    --accent:    #7b8cff;
+    --accent-lt: #1a1f4a;
+    --gold:      #f0c040;
+    --gold-lt:   #2a2200;
+    --danger:    #e05a4a;
+    --danger-lt: #2a0e0a;
+    --success:   #4ab870;
+    --success-lt:#0a2018;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg:        #131210;
+  --surface:   #1e1c18;
+  --surface2:  #252320;
+  --border:    #3a3830;
+  --fg:        #f0ede8;
+  --fg2:       #a09a90;
+  --fg3:       #6a6460;
+  --accent:    #7b8cff;
+  --accent-lt: #1a1f4a;
+  --gold:      #f0c040;
+  --gold-lt:   #2a2200;
+  --danger:    #e05a4a;
+  --danger-lt: #2a0e0a;
+  --success:   #4ab870;
+  --success-lt:#0a2018;
+  color-scheme: dark;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', system-ui, sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  background: var(--bg);
+  color: var(--fg);
+  min-height: 100dvh;
+  padding-left: max(0px, env(safe-area-inset-left, 0px));
+  padding-right: max(0px, env(safe-area-inset-right, 0px));
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+input, textarea, select { font-family: inherit; font-size: 14px; color: var(--fg); }
+a { color: var(--accent); }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+
+/* ============================================================
+   HEADER
+   ============================================================ */
+.app-header {
+  background: var(--accent);
+  color: #fff;
+  padding: 0 max(20px, env(safe-area-inset-left,0px));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+.app-header h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  letter-spacing: .5px;
+  white-space: nowrap;
+}
+.app-header .header-right { display: flex; align-items: center; gap: 10px; }
+.theme-btn {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  color: #fff;
+  font-size: 16px;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s;
+}
+.theme-btn:hover { background: rgba(255,255,255,.28); }
+
+/* ============================================================
+   TAB NAV
+   ============================================================ */
+.tab-nav {
+  display: flex;
+  border-bottom: 2px solid var(--border);
+  background: var(--surface);
+  overflow-x: auto;
+  scrollbar-width: none;
+  position: sticky;
+  top: 56px;
+  z-index: 90;
+}
+.tab-nav::-webkit-scrollbar { display: none; }
+.tab-btn {
+  flex: none;
+  padding: 12px 18px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--fg2);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  white-space: nowrap;
+  transition: color .15s, border-color .15s;
+}
+.tab-btn.active { color: var(--accent); border-color: var(--accent); font-weight: 600; }
+.tab-btn:hover:not(.active) { color: var(--fg); }
+
+/* ============================================================
+   MAIN CONTENT
+   ============================================================ */
+.tab-panel { display: none; padding: 20px max(16px, env(safe-area-inset-left,0px)) 20px max(16px, env(safe-area-inset-right,0px)); max-width: 100%; }
+.tab-panel.active { display: block; }
+
+/* ============================================================
+   SECTION CARDS
+   ============================================================ */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--fg);
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ============================================================
+   FORMS
+   ============================================================ */
+.field { margin-bottom: 14px; }
+.field label { display: block; font-size: 12px; font-weight: 600; color: var(--fg2); margin-bottom: 5px; text-transform: uppercase; letter-spacing: .05em; }
+.field input, .field textarea, .field select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface2);
+  color: var(--fg);
+  transition: border-color .15s;
+  outline: none;
+}
+.field input:focus, .field textarea:focus, .field select:focus { border-color: var(--accent); }
+.field textarea { resize: vertical; min-height: 72px; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all .15s;
+  border: none;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-primary:hover { filter: brightness(1.1); }
+.btn-secondary { background: var(--surface2); color: var(--fg); border: 1.5px solid var(--border); }
+.btn-secondary:hover { border-color: var(--accent); color: var(--accent); }
+.btn-danger { background: var(--danger-lt); color: var(--danger); }
+.btn-danger:hover { background: var(--danger); color: #fff; }
+.btn-gold { background: var(--gold-lt); color: var(--gold); border: 1.5px solid var(--gold); }
+.btn-gold:hover { background: var(--gold); color: #fff; }
+.btn-sm { padding: 5px 10px; font-size: 12px; }
+
+/* ============================================================
+   PILLARS
+   ============================================================ */
+.pillars-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.pillar-chip {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 2px solid var(--border);
+  background: var(--surface2);
+  cursor: pointer;
+  transition: all .15s;
+  position: relative;
+}
+.pillar-chip.selected {
+  border-color: var(--chip-color, var(--accent));
+  background: color-mix(in srgb, var(--chip-color, var(--accent)) 12%, transparent);
+}
+.pillar-chip .pillar-emoji { font-size: 20px; display: block; margin-bottom: 4px; }
+.pillar-chip .pillar-name { font-size: 12px; font-weight: 600; color: var(--fg); }
+.pillar-chip .pillar-desc { font-size: 11px; color: var(--fg2); margin-top: 2px; }
+.pillar-edit-btn {
+  position: absolute; top: 4px; right: 4px;
+  width: 20px; height: 20px;
+  font-size: 11px;
+  background: var(--surface);
+  border-radius: 4px;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0;
+  transition: opacity .15s;
+}
+.pillar-chip:hover .pillar-edit-btn { opacity: 1; }
+
+/* ============================================================
+   IDEA CARDS
+   ============================================================ */
+.ideas-list { display: flex; flex-direction: column; gap: 10px; }
+.idea-card {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-left: 4px solid var(--pillar-color, var(--accent));
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.idea-card .idea-meta { flex: 1; min-width: 0; }
+.idea-card .idea-title { font-weight: 600; font-size: 14px; margin-bottom: 3px; }
+.idea-card .idea-tags { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+.tag {
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 20px;
+  background: var(--surface2);
+  color: var(--fg2);
+}
+.tag.tag-ig { background: #fce4ec; color: #c2185b; }
+.tag.tag-tt { background: #e8f5e9; color: #1b5e20; }
+.tag.tag-fb { background: #e3f2fd; color: #0d47a1; }
+.tag.tag-dark { background: #2a1a30; color: #ce93d8; }
+:root[data-theme="dark"] .tag.tag-ig { background: #3a1020; color: #f48fb1; }
+:root[data-theme="dark"] .tag.tag-tt { background: #0a2010; color: #a5d6a7; }
+:root[data-theme="dark"] .tag.tag-fb { background: #0a1828; color: #90caf9; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .tag.tag-ig { background: #3a1020; color: #f48fb1; }
+  :root:not([data-theme="light"]) .tag.tag-tt { background: #0a2010; color: #a5d6a7; }
+  :root:not([data-theme="light"]) .tag.tag-fb { background: #0a1828; color: #90caf9; }
+}
+.status-badge {
+  font-size: 11px; font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 20px;
+  white-space: nowrap;
+}
+.status-idee    { background: var(--surface2);   color: var(--fg2); }
+.status-rafinat { background: var(--gold-lt);     color: var(--gold); }
+.status-gata    { background: var(--success-lt);  color: var(--success); }
+.status-postat  { background: var(--accent-lt);   color: var(--accent); }
+
+/* ============================================================
+   CALENDAR
+   ============================================================ */
+.cal-nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+.cal-month-label { font-size: 18px; font-weight: 700; }
+.cal-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 5px;
+}
+.cal-day-header {
+  text-align: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--fg2);
+  padding: 6px 0;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+}
+.cal-day {
+  min-height: 110px;
+  height: calc((100vh - 210px) / 6);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  padding: 6px;
+  position: relative;
+  transition: border-color .15s, box-shadow .15s;
+  cursor: pointer;
+  overflow: hidden;
+}
+.cal-day:hover { box-shadow: 0 2px 8px rgba(29,42,182,.15); }
+.cal-day:hover { border-color: var(--accent); }
+.cal-day.other-month { background: var(--surface2); opacity: .5; cursor: default; }
+.cal-day.other-month:hover { border-color: var(--border); }
+.cal-day.today { border-color: var(--accent); border-width: 2px; background: var(--accent-lt); }
+.cal-day-num {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--fg2);
+  margin-bottom: 4px;
+  line-height: 1.2;
+}
+.cal-day.today .cal-day-num { color: var(--accent); }
+.cal-post-dot {
+  font-size: 10px;
+  padding: 2px 5px;
+  border-radius: 4px;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  border-left: 3px solid var(--dot-color, var(--accent));
+  background: color-mix(in srgb, var(--dot-color, var(--accent)) 20%, var(--surface));
+  color: var(--fg);
+  font-weight: 600;
+  line-height: 1.5;
+}
+.cal-add-btn {
+  position: absolute;
+  bottom: 3px; right: 3px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 14px;
+  line-height: 18px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity .15s;
+}
+.cal-day:hover .cal-add-btn { opacity: 1; }
+
+/* ============================================================
+   ANALYTICS
+   ============================================================ */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.stat-tile {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+  text-align: center;
+}
+.stat-tile .stat-val { font-size: 28px; font-weight: 700; color: var(--accent); }
+.stat-tile .stat-lbl { font-size: 12px; color: var(--fg2); margin-top: 3px; }
+.bar-chart { display: flex; flex-direction: column; gap: 8px; }
+.bar-row { display: flex; align-items: center; gap: 10px; }
+.bar-row .bar-lbl { font-size: 12px; color: var(--fg2); width: 120px; flex-shrink: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar-outer { flex: 1; background: var(--surface2); border-radius: 4px; height: 12px; min-width: 0; }
+.bar-inner { height: 100%; border-radius: 4px; background: var(--accent); transition: width .4s; }
+.bar-row .bar-count { font-size: 12px; font-weight: 600; color: var(--fg); width: 24px; text-align: right; }
+
+/* ============================================================
+   MODAL
+   ============================================================ */
+.modal-backdrop {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.5);
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal {
+  background: var(--surface);
+  border-radius: 14px;
+  padding: 24px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90dvh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,.3);
+}
+.modal-title { font-size: 17px; font-weight: 700; margin-bottom: 18px; }
+.modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+
+/* ============================================================
+   PLATFORM TOGGLES
+   ============================================================ */
+.platform-group { display: flex; gap: 8px; flex-wrap: wrap; }
+.platform-toggle {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 2px solid var(--border);
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all .15s;
+  background: var(--surface2);
+  color: var(--fg2);
+}
+.platform-toggle.on-ig  { border-color: #c2185b; background: #fce4ec; color: #c2185b; }
+.platform-toggle.on-tt  { border-color: #1b5e20; background: #e8f5e9; color: #1b5e20; }
+.platform-toggle.on-fb  { border-color: #0d47a1; background: #e3f2fd; color: #0d47a1; }
+:root[data-theme="dark"] .platform-toggle.on-ig { border-color: #f48fb1; background: #3a1020; color: #f48fb1; }
+:root[data-theme="dark"] .platform-toggle.on-tt { border-color: #a5d6a7; background: #0a2010; color: #a5d6a7; }
+:root[data-theme="dark"] .platform-toggle.on-fb { border-color: #90caf9; background: #0a1828; color: #90caf9; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) .platform-toggle.on-ig { border-color: #f48fb1; background: #3a1020; color: #f48fb1; }
+  :root:not([data-theme="light"]) .platform-toggle.on-tt { border-color: #a5d6a7; background: #0a2010; color: #a5d6a7; }
+  :root:not([data-theme="light"]) .platform-toggle.on-fb { border-color: #90caf9; background: #0a1828; color: #90caf9; }
+}
+
+/* ============================================================
+   BRAND SECTION
+   ============================================================ */
+.brand-hero {
+  background: linear-gradient(135deg, var(--accent) 0%, #4a56d4 100%);
+  color: #fff;
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 16px;
+}
+.brand-hero h2 { font-family: 'Playfair Display', serif; font-size: 22px; margin-bottom: 6px; }
+.brand-hero p  { font-size: 13px; opacity: .85; }
+
+/* ============================================================
+   EMPTY STATES
+   ============================================================ */
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--fg2);
+}
+.empty-state .empty-icon { font-size: 40px; margin-bottom: 12px; }
+.empty-state h3 { font-size: 16px; font-weight: 700; color: var(--fg); margin-bottom: 6px; }
+.empty-state p { font-size: 13px; }
+
+/* ============================================================
+   TOAST
+   ============================================================ */
+#toast {
+  position: fixed;
+  bottom: max(24px, env(safe-area-inset-bottom, 0px));
+  left: 50%;
+  transform: translateX(-50%) translateY(40px);
+  background: #1a1a2e;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 24px;
+  font-size: 13px;
+  font-weight: 500;
+  opacity: 0;
+  transition: all .3s;
+  z-index: 500;
+  white-space: nowrap;
+  pointer-events: none;
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ============================================================
+   FILTERS BAR
+   ============================================================ */
+.filters-bar { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; align-items: center; }
+.filter-select {
+  padding: 7px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--fg);
+  font-size: 13px;
+  outline: none;
+}
+.filter-select:focus { border-color: var(--accent); }
+.search-input {
+  flex: 1;
+  min-width: 160px;
+  padding: 7px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 7px;
+  background: var(--surface);
+  color: var(--fg);
+  font-size: 13px;
+  outline: none;
+}
+.search-input:focus { border-color: var(--accent); }
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+@media (max-width: 560px) {
+  .cal-day { min-height: 60px; padding: 3px; height: auto; }
+  .cal-day-header { font-size: 9px; }
+  .cal-day-num { font-size: 11px; }
+  .cal-post-dot { font-size: 9px; }
+  .pillars-grid { grid-template-columns: repeat(2, 1fr); }
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="app-header">
+  <h1>✨ Content Studio MME</h1>
+  <div class="header-right">
+    <button class="theme-btn" onclick="toggleTheme()" title="Schimbă tema">🌙</button>
+  </div>
+</header>
+
+<!-- TAB NAV -->
+<nav class="tab-nav" id="tabNav">
+  <button class="tab-btn" data-tab="brand">🏷️ Brand</button>
+  <button class="tab-btn" data-tab="strategie">🎯 Strategie</button>
+  <button class="tab-btn" data-tab="idei">💡 Idei</button>
+  <button class="tab-btn active" data-tab="calendar">📅 Calendar</button>
+  <button class="tab-btn" data-tab="analiza">📊 Analiză</button>
+  <button class="tab-btn" data-tab="voce">🎙️ Voce & Script</button>
+</nav>
+
+<!-- ============================================================
+     TAB: BRAND PERSONAL
+     ============================================================ -->
+<div class="tab-panel" id="tab-brand">
+  <div class="brand-hero">
+    <h2 id="brandNameDisplay">Math More Easy</h2>
+    <p id="brandTaglineDisplay">Matematica pe înțelesul oricărui copil</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">👤 Identitatea mea</div>
+    <div class="field"><label>Numele meu / brandului</label><input id="bName" placeholder="ex: Alina Nistor – Math More Easy"></div>
+    <div class="field"><label>Tagline (1 propoziție)</label><input id="bTagline" placeholder="ex: Matematica pe înțelesul oricărui copil"></div>
+    <div class="field"><label>Misiunea mea</label><textarea id="bMisiune" placeholder="De ce faci ceea ce faci? Ce schimbare vrei să produci?"></textarea></div>
+    <div class="field"><label>Povestea mea (în 2-3 propoziții)</label><textarea id="bPoveste" placeholder="Cine ești, de unde vii, ce te-a adus aici?"></textarea></div>
+    <div class="field"><label>Valori de brand (separate prin virgulă)</label><input id="bValori" placeholder="ex: claritate, încredere, accesibilitate, progres"></div>
+    <button class="btn btn-primary" onclick="saveBrand()">💾 Salvează brand</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🎯 Publicul meu țintă</div>
+    <div class="field"><label>Cine e publicul principal?</label><input id="bPublic" placeholder="ex: elevi cls V-VIII și părinții lor"></div>
+    <div class="field"><label>Ce problemă le rezolv?</label><textarea id="bProblema" placeholder="ex: Înțeleg matematica mai greu, se tem de examene, nu știu de unde să înceapă..."></textarea></div>
+    <div class="field"><label>Ce vor să obțină?</label><textarea id="bDorint" placeholder="ex: Note bune la EN/BAC, înțelegere reală, nu memorare..."></textarea></div>
+    <button class="btn btn-primary" onclick="savePublic()">💾 Salvează public</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🗣️ Vocea mea</div>
+    <div class="field"><label>Tonul meu (alege sau descrie)</label>
+      <select id="bTon">
+        <option value="">Alege...</option>
+        <option value="Cald și prietenos">Cald și prietenos</option>
+        <option value="Profesionist și autoritar">Profesionist și autoritar</option>
+        <option value="Energic și motivațional">Energic și motivațional</option>
+        <option value="Relaxat și uman">Relaxat și uman</option>
+        <option value="Educativ și clar">Educativ și clar</option>
+      </select>
+    </div>
+    <div class="field"><label>Cum NU vreau să sun niciodată?</label><input id="bAntiton" placeholder="ex: rigid, intimidant, plictisitor, prea tehnic"></div>
+    <div class="field"><label>3 cuvinte care mă descriu</label><input id="bCuvinte" placeholder="ex: clară, autentică, dedicată"></div>
+    <button class="btn btn-primary" onclick="saveVoce()">💾 Salvează voce</button>
+  </div>
+</div>
+
+<!-- ============================================================
+     TAB: STRATEGIE
+     ============================================================ -->
+<div class="tab-panel" id="tab-strategie">
+
+  <div class="card">
+    <div class="card-title">📌 Pilonii mei de content</div>
+    <p style="font-size:13px;color:var(--fg2);margin-bottom:14px;">Pilonii sunt temele principale în jurul cărora construiești tot conținutul. Click pe oricare pentru a-l edita.</p>
+    <div class="pillars-grid" id="pillarsGrid"></div>
+    <button class="btn btn-secondary btn-sm" onclick="addPillar()">+ Adaugă pilon</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📋 Planul meu de content</div>
+    <div class="field"><label>Frecvența de postare</label>
+      <select id="sFrequency">
+        <option value="1">1 postare / zi</option>
+        <option value="2" selected>2 postări / zi</option>
+        <option value="3">3 postări / zi</option>
+        <option value="5">5 postări / săptămână</option>
+        <option value="3w">3 postări / săptămână</option>
+      </select>
+    </div>
+    <div class="field"><label>Platforme active</label>
+      <div class="platform-group" id="stratPlatforms">
+        <button class="platform-toggle on-ig" data-plat="ig" onclick="toggleStratPlat(this)">📸 Instagram</button>
+        <button class="platform-toggle on-tt" data-plat="tt" onclick="toggleStratPlat(this)">🎵 TikTok</button>
+        <button class="platform-toggle on-fb" data-plat="fb" onclick="toggleStratPlat(this)">👥 Facebook</button>
+      </div>
+    </div>
+    <div class="field"><label>Obiectivul lunii (ce vrei să obții?)</label><input id="sObiectiv" placeholder="ex: 500 urmăritori noi, 3 leads pentru curs..."></div>
+    <div class="field"><label>Note strategie (orice altceva)</label><textarea id="sNote" placeholder="Idei, restricții, planuri..."></textarea></div>
+    <button class="btn btn-primary" onclick="saveStrategie()">💾 Salvează strategie</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📐 Formate de postare</div>
+    <p style="font-size:13px;color:var(--fg2);margin-bottom:14px;">Formatele disponibile când planifici o postare.</p>
+    <div id="formateList" style="display:flex;flex-direction:column;gap:8px;margin-bottom:12px;"></div>
+    <button class="btn btn-secondary btn-sm" onclick="addFormat()">+ Adaugă format</button>
+  </div>
+
+</div>
+
+<!-- ============================================================
+     TAB: BANCA DE IDEI
+     ============================================================ -->
+<div class="tab-panel" id="tab-idei">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;flex-wrap:wrap;gap:8px;">
+    <h2 style="font-size:17px;font-weight:700;">💡 Banca de idei</h2>
+    <button class="btn btn-primary btn-sm" onclick="openIdeaModal()">+ Idee nouă</button>
+  </div>
+
+  <div class="filters-bar">
+    <input class="search-input" type="search" id="ideaSearch" placeholder="Caută idee..." oninput="renderIdei()">
+    <select class="filter-select" id="filterPillar" onchange="renderIdei()"><option value="">Toți pilonii</option></select>
+    <select class="filter-select" id="filterStatus" onchange="renderIdei()">
+      <option value="">Toate statusurile</option>
+      <option value="idee">Idee brută</option>
+      <option value="rafinat">De rafinat</option>
+      <option value="gata">Gata de planificat</option>
+      <option value="postat">Postat</option>
+    </select>
+    <select class="filter-select" id="filterPlat" onchange="renderIdei()">
+      <option value="">Toate platformele</option>
+      <option value="ig">Instagram</option>
+      <option value="tt">TikTok</option>
+      <option value="fb">Facebook</option>
+    </select>
+  </div>
+
+  <div class="ideas-list" id="ideaList"></div>
+</div>
+
+<!-- ============================================================
+     TAB: CALENDAR
+     ============================================================ -->
+<div class="tab-panel active" id="tab-calendar">
+  <div class="cal-nav">
+    <button class="btn btn-secondary btn-sm" onclick="changeMonth(-1)">← Înapoi</button>
+    <span class="cal-month-label" id="calMonthLabel"></span>
+    <button class="btn btn-secondary btn-sm" onclick="changeMonth(1)">Înainte →</button>
+  </div>
+
+  <div class="cal-grid" id="calGrid">
+    <div class="cal-day-header">Lu</div>
+    <div class="cal-day-header">Ma</div>
+    <div class="cal-day-header">Mi</div>
+    <div class="cal-day-header">Jo</div>
+    <div class="cal-day-header">Vi</div>
+    <div class="cal-day-header">Sâ</div>
+    <div class="cal-day-header">Du</div>
+  </div>
+
+  <div style="margin-top:16px;" class="card">
+    <div class="card-title">📋 Postările din această lună</div>
+    <div id="calMonthList" style="display:flex;flex-direction:column;gap:8px;"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     TAB: ANALIZĂ
+     ============================================================ -->
+<div class="tab-panel" id="tab-analiza">
+  <div class="stats-grid" id="statsGrid"></div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-title">📊 Postări pe pilon</div>
+    <div class="bar-chart" id="pillarChart"></div>
+  </div>
+
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-title">📱 Postări pe platformă</div>
+    <div class="bar-chart" id="platChart"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📅 Postări pe lună</div>
+    <div class="bar-chart" id="monthChart"></div>
+  </div>
+</div>
+
+<!-- ============================================================
+     TAB: VOCE & SCRIPT
+     ============================================================ -->
+<div class="tab-panel" id="tab-voce">
+
+  <!-- Generator script -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-title">🎬 Generator Script cu Regie Vocală</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div class="field" style="margin:0;">
+        <label>Subiect / titlu video *</label>
+        <input id="vSubiect" placeholder="ex: Capcana proporțiilor la EN">
+      </div>
+      <div class="field" style="margin:0;">
+        <label>Nivel</label>
+        <select id="vNivel">
+          <option value="EN">Evaluare Națională (cls. VIII)</option>
+          <option value="BAC">Bacalaureat</option>
+          <option value="V-VII">Clase V–VII</option>
+          <option value="parinti">Părinți</option>
+        </select>
+      </div>
+    </div>
+    <div class="field">
+      <label>Capcana / greșeala frecventă</label>
+      <textarea id="vCapcana" rows="2" placeholder="ex: Elevii uită să pună paranteză la expresia x-1 și nu înmulțesc corect cu 2"></textarea>
+    </div>
+    <div class="field">
+      <label>Soluția corectă (pași)</label>
+      <textarea id="vSolutie" rows="2" placeholder="ex: 2(x-1) = 7y → 2x-2 = 7y → 2x-7y = 2"></textarea>
+    </div>
+    <div class="field">
+      <label>Mesajul final (ce vrei să rețină)</label>
+      <input id="vMesaj" placeholder="ex: O paranteză separă un punct luat de unul pierdut">
+    </div>
+    <button class="btn btn-primary" onclick="genScript()">✨ Generează script</button>
+  </div>
+
+  <!-- Output script -->
+  <div class="card" id="scriptOutput" style="display:none;margin-bottom:16px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div class="card-title" style="margin:0;">📄 Scriptul tău</div>
+      <button class="btn btn-sm" onclick="copyScript()">📋 Copiază</button>
+    </div>
+    <div id="scriptText" style="white-space:pre-wrap;font-size:13px;line-height:1.8;font-family:inherit;"></div>
+  </div>
+
+  <!-- Jurnal video -->
+  <div class="card" style="margin-bottom:16px;">
+    <div class="card-title">📓 Jurnal Video — Evoluție Vocală</div>
+    <p style="color:var(--fg2);font-size:13px;margin-bottom:14px;">Notează după fiecare filmare ce ai observat. Scorurile sunt de la 1 la 10.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+      <div class="field" style="margin:0;">
+        <label>Video / titlu</label>
+        <input id="jTitlu" placeholder="ex: Capcana proporții v2">
+      </div>
+      <div class="field" style="margin:0;">
+        <label>Data</label>
+        <input id="jData" type="date">
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:12px;">
+      <div class="field" style="margin:0;">
+        <label>Ritm (1-10)</label>
+        <input id="jRitm" type="number" min="1" max="10" placeholder="7">
+      </div>
+      <div class="field" style="margin:0;">
+        <label>Pauze (1-10)</label>
+        <input id="jPauze" type="number" min="1" max="10" placeholder="6">
+      </div>
+      <div class="field" style="margin:0;">
+        <label>Energie (1-10)</label>
+        <input id="jEnergie" type="number" min="1" max="10" placeholder="8">
+      </div>
+      <div class="field" style="margin:0;">
+        <label>Claritate (1-10)</label>
+        <input id="jClaritate" type="number" min="1" max="10" placeholder="8">
+      </div>
+    </div>
+    <div class="field">
+      <label>Observații (ce a mers, ce ajustezi)</label>
+      <textarea id="jObs" rows="2" placeholder="ex: Am uitat pauza după capcană, intro a sunat bine"></textarea>
+    </div>
+    <div class="field">
+      <label>Feedback Claude (copiază din chat)</label>
+      <textarea id="jFeedback" rows="2" placeholder="Lipește aici feedback-ul primit după analiza video"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="addJurnal()">💾 Salvează în jurnal</button>
+  </div>
+
+  <!-- Lista jurnal -->
+  <div class="card">
+    <div class="card-title">📈 Istoricul evoluției</div>
+    <div id="jurnalList"></div>
+    <canvas id="evolutieChart" style="margin-top:16px;max-height:200px;display:none;"></canvas>
+  </div>
+
+</div>
+
+<!-- ============================================================
+     MODAL: IDEA
+     ============================================================ -->
+<div class="modal-backdrop" id="ideaModal" hidden>
+  <div class="modal">
+    <div class="modal-title" id="ideaModalTitle">💡 Idee nouă</div>
+    <div class="field"><label>Titlul ideii *</label><input id="iTitle" placeholder="ex: 3 greșeli frecvente la ecuații de gradul II"></div>
+    <div class="field"><label>Descriere / script</label><textarea id="iDesc" placeholder="Detalii, unghiuri, ce vrei să transmiți..."></textarea></div>
+    <div class="field"><label>Pilon</label>
+      <select id="iPilon"><option value="">Alege pilon...</option></select>
+    </div>
+    <div class="field"><label>Format</label>
+      <select id="iFormat"><option value="">Alege format...</option></select>
+    </div>
+    <div class="field"><label>Platforme</label>
+      <div class="platform-group" id="iPlats">
+        <button type="button" class="platform-toggle" data-plat="ig" onclick="toggleIdeaPlat(this)">📸 IG</button>
+        <button type="button" class="platform-toggle" data-plat="tt" onclick="toggleIdeaPlat(this)">🎵 TT</button>
+        <button type="button" class="platform-toggle" data-plat="fb" onclick="toggleIdeaPlat(this)">👥 FB</button>
+      </div>
+    </div>
+    <div class="field"><label>Status</label>
+      <select id="iStatus">
+        <option value="idee">💭 Idee brută</option>
+        <option value="rafinat">✏️ De rafinat</option>
+        <option value="gata">✅ Gata de planificat</option>
+        <option value="postat">📤 Postat</option>
+      </select>
+    </div>
+    <div class="field"><label>Data programată (opțional)</label><input type="date" id="iData"></div>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" onclick="closeIdeaModal()">Anulează</button>
+      <button class="btn btn-primary" onclick="saveIdea()">💾 Salvează</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: PILLAR EDIT
+     ============================================================ -->
+<div class="modal-backdrop" id="pillarModal" hidden>
+  <div class="modal">
+    <div class="modal-title">📌 Editează pilon</div>
+    <input type="hidden" id="pIdx">
+    <div class="field"><label>Emoji</label><input id="pEmoji" maxlength="4" placeholder="📚"></div>
+    <div class="field"><label>Nume pilon</label><input id="pName" placeholder="ex: Matematică practică"></div>
+    <div class="field"><label>Descriere scurtă</label><input id="pDesc" placeholder="ex: Exerciții, metode, trucuri"></div>
+    <div class="field"><label>Culoare (hex)</label><input id="pColor" type="color" value="#1D2AB6"></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger btn-sm" onclick="deletePillar()">🗑️ Șterge</button>
+      <button class="btn btn-secondary" onclick="closePillarModal()">Anulează</button>
+      <button class="btn btn-primary" onclick="savePillar()">💾 Salvează</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     MODAL: CALENDAR POST
+     ============================================================ -->
+<div class="modal-backdrop" id="calModal" hidden>
+  <div class="modal">
+    <div class="modal-title" id="calModalTitle">📅 Adaugă postare</div>
+    <input type="hidden" id="calPostId">
+    <div class="field"><label>Data *</label><input type="date" id="calDate"></div>
+    <div class="field"><label>Titlu postare *</label>
+      <input id="calTitle" placeholder="Titlul postării sau al ideii">
+    </div>
+    <div class="field"><label>Sau alege din banca de idei</label>
+      <select id="calIdeaSel" onchange="fillFromIdea()"><option value="">-- alege o idee existentă --</option></select>
+    </div>
+    <div class="field"><label>Pilon</label>
+      <select id="calPilon"><option value="">Alege pilon...</option></select>
+    </div>
+    <div class="field"><label>Format</label>
+      <select id="calFormat"><option value="">Alege format...</option></select>
+    </div>
+    <div class="field"><label>Platforme</label>
+      <div class="platform-group" id="calPlats">
+        <button type="button" class="platform-toggle" data-plat="ig" onclick="toggleCalPlat(this)">📸 IG</button>
+        <button type="button" class="platform-toggle" data-plat="tt" onclick="toggleCalPlat(this)">🎵 TT</button>
+        <button type="button" class="platform-toggle" data-plat="fb" onclick="toggleCalPlat(this)">👥 FB</button>
+      </div>
+    </div>
+    <div class="field"><label>Status</label>
+      <select id="calStatus">
+        <option value="planificat">📅 Planificat</option>
+        <option value="gata">✅ Gata de postat</option>
+        <option value="postat">📤 Postat</option>
+      </select>
+    </div>
+    <div class="field"><label>Note</label><textarea id="calNote" placeholder="Detalii suplimentare..."></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-danger btn-sm" id="calDeleteBtn" onclick="deleteCalPost()" hidden>🗑️</button>
+      <button class="btn btn-secondary" onclick="closeCalModal()">Anulează</button>
+      <button class="btn btn-primary" onclick="saveCalPost()">💾 Salvează</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- ============================================================
+     JAVASCRIPT
+     ============================================================ -->
+<script>
+// ============================================================
+// STORAGE KEYS
+// ============================================================
+const LS = {
+  brand:    'mme_brand_v1',
+  strategie:'mme_strategie_v1',
+  pillars:  'mme_pillars_v1',
+  formats:  'mme_formats_v1',
+  idei:     'mme_idei_v1',
+  posts:    'mme_posts_v1',
+  theme:    'mme_theme_v1',
+};
+
+// ============================================================
+// DEFAULTS
+// ============================================================
+const DEFAULT_PILLARS = [
+  { emoji:'📝', name:'Evaluare Națională', desc:'Exerciții, capcane, strategii EN cls VIII', color:'#1D2AB6' },
+  { emoji:'🎓', name:'BAC',                desc:'Subiecte, metode, capcane frecvente BAC',   color:'#c49a00' },
+  { emoji:'📐', name:'Clase V–VII',        desc:'Lecții și exerciții pentru clasele V-VII',  color:'#1a7a4a' },
+  { emoji:'👨‍👩‍👧', name:'Părinți',           desc:'Sfaturi pentru părinți despre matematică', color:'#e53935' },
+  { emoji:'📚', name:'Meditații',          desc:'Cum funcționează meditațiile Math More Easy',color:'#8e24aa' },
+  { emoji:'🎯', name:'Cursuri',            desc:'Cursuri online Math More Easy',              color:'#00897b' },
+  { emoji:'🎬', name:'Personal / Behind the scenes', desc:'Culisele muncii de profesor creator', color:'#5c6bc0' },
+  { emoji:'🤖', name:'AI și tehnologie',   desc:'Cum folosesc AI-ul în educație și muncă',   color:'#f4511e' },
+];
+const DEFAULT_FORMATS = [
+  'TikTok',
+  'Reel',
+  'Carusel',
+  'YouTube',
+  'Imagine statică',
+  'Tutorial pas cu pas',
+];
+
+// ============================================================
+// NOTION IMPORT — date pre-încărcate la prima deschidere
+// ============================================================
+const NOTION_POSTS = [
+  { id:'n1',  date:'2026-10-31', title:'EN: recapitulare – 5 capcane clasice la Evaluarea Națională', note:'Seara 31 oct. Format recapitulativ cu potential mare de distribuiri.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n2',  date:'2026-10-31', title:'BAC: șiruri și progresii – suma primilor n termeni ai unei progresii aritmetice', note:'Prânz 31 oct. Progresiile sunt capitol standard BAC.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n3',  date:'2026-10-31', title:'Clasa a VII-a: funcția de gradul I – grafic și intercept', note:'Dimineața 31 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n4',  date:'2026-10-30', title:'EN: Subiectul I complet – rezolvare rapidă fără să pierzi puncte', note:'Seara 30 oct. Strategia de examen, util și pentru părinți.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n5',  date:'2026-10-30', title:'BAC: integrale definite – calculul ariei dintre curbă și axa Ox', note:'Prânz 30 oct. Integralele definite și aria sunt Subiectul III tipic cls XII.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n6',  date:'2026-10-30', title:'Clasa a V-a: cmmdc și cmmmc – aplicații și diferența dintre ele', note:'Dimineața 30 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n7',  date:'2026-10-29', title:'EN: media aritmetică și geometrică – exercițiu cu capcană din Subiectul I', note:'Seara 29 oct.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n8',  date:'2026-10-29', title:'BAC: metoda de rezolvare a sistemelor de 3 ecuații cu 3 necunoscute', note:'Prânz 29 oct.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n9',  date:'2026-10-29', title:'Clasa a VII-a: inecuații de gradul I – schimbarea sensului la înmulțirea cu negativ', note:'Dimineața 29 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n10', date:'2026-10-28', title:'EN: probabilități – definiția clasică și exerciții cu bile din urnă', note:'Seara 28 oct.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n11', date:'2026-10-28', title:'BAC: limite de funcții – forma 0/0 și metoda de rezolvare', note:'Prânz 28 oct.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n12', date:'2026-10-28', title:'Clasa a V-a: cifrele romane și sistemul zecimal – conversie și aplicații', note:'Dimineața 28 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n13', date:'2026-10-27', title:'EN: unghiuri înscrise în cerc – metoda deplasării unui punct pe circumferință', note:'Seara 27 oct.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n14', date:'2026-10-27', title:'BAC: derivata produsului – regula și greșelile clasice', note:'Prânz 27 oct.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n15', date:'2026-10-27', title:'Clasa a VI-a: procente – calculul procentului dintr-un număr și aplicații reale', note:'Dimineața 27 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n16', date:'2026-10-27', title:'Unghiuri: truc de verificare pentru bisectoare', note:'', pillar:2, format:'TikTok', platforms:['tt','ig'], status:'rafinat' },
+  { id:'n17', date:'2026-10-26', title:'EN: parabola și graficul funcției de gradul II – citirea informațiilor din grafic', note:'Seara 26 oct.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n18', date:'2026-10-26', title:'BAC: trigonometrie – sin și cos pentru unghiuri remarcabile, greșelile tipice', note:'Prânz 26 oct.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n19', date:'2026-10-26', title:'Clasa a VII-a: ecuații de gradul I cu paranteze și coeficienți fracționari', note:'Dimineața 26 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n20', date:'2026-10-26', title:'Ce înseamnă de fapt să înțelegi matematica', note:'', pillar:3, format:'Reel', platforms:['ig','fb'], status:'rafinat' },
+  { id:'n21', date:'2026-10-25', title:'Clasa a VII-a: exercițiu cu radicali', note:'TikTok duminică 25 octombrie, 18:30.', pillar:2, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  { id:'n22', date:'2026-10-25', title:'EN: teorema lui Pitagora – aplicații și capcane frecvente la EN', note:'Seara 25 oct.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n23', date:'2026-10-25', title:'BAC: capcană la funcții – Subiectul I, exercițiul 2', note:'TikTok duminică 25 octombrie, 11:00.', pillar:1, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  { id:'n24', date:'2026-10-25', title:'Clasa a V-a: fracții – amplificarea și simplificarea', note:'Dimineața 25 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n25', date:'2026-10-24', title:'Clasa a V-a: teorema împărțirii cu rest', note:'TikTok sâmbătă 24 octombrie, 18:30.', pillar:2, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  { id:'n26', date:'2026-10-24', title:'EN: sistemele de ecuații de gradul I – metoda substituției vs eliminării', note:'Seara 24 oct.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n27', date:'2026-10-24', title:'BAC: funcții – monotonia și determinarea intervalelor de creștere sau descreștere', note:'Prânz 24 oct.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n28', date:'2026-10-24', title:'Evaluare Națională: problemă cu bănci/ecuații – Subiectul III, ex. 1', note:'TikTok sâmbătă 24 octombrie, 11:00.', pillar:0, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  { id:'n29', date:'2026-10-24', title:'Clasa a VI-a: împărțirea cu rest la numerele întregi', note:'Dimineața 24 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n30', date:'2026-10-23', title:'Clasa a VI-a: divizori și expresia 7/(2n+1)', note:'TikTok vineri 23 octombrie, 18:30.', pillar:2, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  { id:'n31', date:'2026-10-23', title:'EN: aria triunghiului cu formula sinusului', note:'Seara 23 oct.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n32', date:'2026-10-23', title:'BAC: progresii – exercițiu de Subiectul I', note:'TikTok vineri 23 octombrie, 11:00.', pillar:1, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  { id:'n33', date:'2026-10-23', title:'Clasa a V-a: proprietățile înmulțirii – scurtături de calcul', note:'Dimineața 23 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n34', date:'2026-10-22', title:'Clasa a VIII-a: inecuație cu cerință pe Z', note:'TikTok joi 22 octombrie, 18:30.', pillar:0, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  { id:'n35', date:'2026-10-22', title:'EN: ecuații cu fracții raționale – condiția de existență uitată', note:'Seara 22 oct.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n36', date:'2026-10-22', title:'BAC: ecuația de gradul II – greșeala la discriminant', note:'Prânz 22 oct.', pillar:1, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n37', date:'2026-10-22', title:'Evaluare Națională: geometrie grilă cu centrul de greutate', note:'TikTok joi 22 octombrie, 11:00.', pillar:0, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  { id:'n38', date:'2026-10-22', title:'Clasa a VII-a: radicali – simplificarea expresiilor cu radicali', note:'Dimineața 22 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n39', date:'2026-10-21', title:'Clasa a V-a: suma lui Gauss', note:'TikTok miercuri 21 octombrie, 18:30.', pillar:2, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  { id:'n40', date:'2026-10-21', title:'EN: puteri cu exponent negativ – capcana la numere raționale', note:'Seara 21 oct.', pillar:0, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n41', date:'2026-10-21', title:'BAC: capcană la Subiectul I cu fracții și ordinea operațiilor', note:'TikTok miercuri 21 octombrie, 11:00.', pillar:1, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  { id:'n42', date:'2026-10-21', title:'Clasa a VI-a: unghiuri și proprietățile lor', note:'Dimineața 21 oct.', pillar:2, format:'TikTok', platforms:['tt'], status:'idee' },
+  { id:'n43', date:'2026-10-20', title:'Clasa a VII-a: exercițiu cu linia mijlocie', note:'TikTok marți 20 octombrie, 18:30.', pillar:2, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  { id:'n44', date:'2026-10-20', title:'Evaluare Națională: capcană la Subiectul I', note:'TikTok marți 20 octombrie, 11:00.', pillar:0, format:'TikTok', platforms:['tt'], status:'postat', link:'https://www.tiktok.com/@matematicamaiusoara/video/7698631031884123414' },
+  { id:'n45', date:'2026-10-19', title:'Clasa a VI-a: problemă la unghiuri înainte de lucrare', note:'TikTok luni 19 octombrie, 18:30.', pillar:2, format:'TikTok', platforms:['tt'], status:'rafinat' },
+  { id:'n46', date:'2026-10-19', title:'Provocare BAC: integrală cu radical de ordinul 7', note:'TikTok luni 19 octombrie, 11:00.', pillar:1, format:'TikTok', platforms:['tt'], status:'postat', link:'https://www.tiktok.com/@matematicamaiusoara/video/7698404721274440982' },
+];
+
+const NOTION_IDEI = [
+  { id:'ni1', title:'Cum aleg exercițiile potrivite pentru un elev', desc:'Nu aleg exercițiile după număr, ci după tipul exact de eroare pe care vreau să-l corectez.', pillar:4, format:'Reel', platforms:['ig','fb'], status:'idee' },
+  { id:'ni2', title:'Cum transform o problemă de matematică într-un clip scurt', desc:'Un exercițiu de 15 minute trebuie comprimat într-un clip care să rămână corect matematic.', pillar:6, format:'Reel', platforms:['ig','tt'], status:'idee' },
+  { id:'ni3', title:'Diferența dintre a corecta tema și a diagnostica o lacună', desc:'O greșeală într-un exercițiu nu spune întotdeauna care este problema reală.', pillar:4, format:'Carusel', platforms:['ig','fb'], status:'idee' },
+  { id:'ni4', title:'Tur rapid prin cursul de Evaluare Națională', desc:'Dacă te pregătești pentru Evaluarea Națională, așa este organizat cursul ca să nu înveți haotic.', pillar:5, format:'Reel', platforms:['ig','tt','fb'], status:'idee' },
+  { id:'ni5', title:'Unde poate greși AI-ul într-un exercițiu de matematică', desc:'Un răspuns formulat foarte convingător poate fi totuși matematic greșit.', pillar:7, format:'Carusel', platforms:['ig','fb'], status:'idee' },
+  { id:'ni6', title:'O zi reală: meditații, site, filmare și materiale', desc:'Așa arată o zi în care sunt și profesor, și creator de conținut, și om de site.', pillar:6, format:'Reel', platforms:['ig','tt'], status:'idee' },
+  { id:'ni7', title:'Cum folosesc AI pentru a-mi organiza munca, nu pentru a preda în locul meu', desc:'AI-ul îmi poate economisi timp, dar nu decid să-i las lui partea care cere judecată didactică.', pillar:7, format:'Reel', platforms:['ig','tt','fb'], status:'idee' },
+  { id:'ni8', title:'De ce am împărțit Subiectul I pe tipuri de exerciții', desc:'Un test complet îți spune nota. Un curs bun îți arată exact ce tip de exercițiu trebuie reparat.', pillar:5, format:'Reel', platforms:['ig','tt'], status:'idee' },
+  { id:'ni9', title:'Înainte și după: cum se schimbă rezolvarea când elevul înțelege logica', desc:'Aceeași problemă, același elev, dar două moduri complet diferite de a gândi.', pillar:4, format:'Reel', platforms:['ig','tt'], status:'idee' },
+  { id:'ni10',title:'Cât de des ar trebui să lucreze un elev la matematică', desc:'Mai mult nu înseamnă automat mai bine. Contează frecvența, nivelul și feedbackul.', pillar:3, format:'Reel', platforms:['ig','fb','tt'], status:'idee' },
+  { id:'ni11',title:'Ce primește elevul într-o lecție Math More Easy', desc:'Nu este doar teorie. Fiecare lecție este construită ca elevul să poată trece de la înțelegere la aplicare.', pillar:5, format:'Carusel', platforms:['ig','fb'], status:'idee' },
+  { id:'ni12',title:'Cum înveți formulele de geometrie fără să le memorezi mecanic', desc:'Dacă uiți formulele imediat după ce le-ai învățat, problema poate fi metoda, nu memoria.', pillar:0, format:'Reel', platforms:['ig','tt','fb'], status:'idee' },
+  { id:'ni13',title:'Cum verifici rapid dacă un rezultat la radicali are sens', desc:'Nu trebuie să refaci tot calculul ca să vezi dacă ai greșit la radicali.', pillar:0, format:'TikTok', platforms:['tt','ig'], status:'idee' },
+  { id:'ni14',title:'Cum arată o ședință de meditații în grupă de maximum 2 elevi', desc:'De ce lucrez în grupe de maximum doi și nu în grupe mari?', pillar:4, format:'Reel', platforms:['ig','fb'], status:'idee' },
+  { id:'ni15',title:'Cum folosesc fișele PDF împreună cu lecțiile video', desc:'Video-ul explică, fișa te obligă să verifici dacă ai înțeles.', pillar:5, format:'Reel', platforms:['ig','tt','fb'], status:'idee' },
+  { id:'ni16',title:'Ce fac la meditații când un elev spune «nu știu de unde să încep»', desc:'Primul pas nu este să-i spun formula. Încerc să aflu unde se rupe raționamentul.', pillar:4, format:'Reel', platforms:['ig','tt','fb'], status:'idee' },
+  { id:'ni17',title:'Ce trebuie să știi înainte să începi pregătirea pentru EN', desc:'Pregătirea eficientă nu începe cu 100 de teste, ci cu o hartă clară a materiei.', pillar:0, format:'Carusel', platforms:['ig','fb'], status:'idee' },
+  { id:'ni18',title:'Cum îmi organizez lecțiile și materialele în spatele site-ului', desc:'În spatele unei lecții de 10 minute sunt mult mai multe ore decât pare.', pillar:6, format:'Reel', platforms:['ig','tt'], status:'idee' },
+  { id:'ni19',title:'Cum explici proporțiile fără regula de trei simplă memorată', desc:'Proporțiile au logică. Dacă înțelegi relația, nu mai memorezi pași fără sens.', pillar:2, format:'Reel', platforms:['ig','tt'], status:'idee' },
+  // --- Import din Idei de content.docx (100 idei) ---
+  { id:'di1',  title:'Ordinea operațiilor: ce calculezi prima dată?', desc:'Tutorial pentru clasa a V-a despre ordinea operațiilor în calcul.', pillar:2, format:'Tutorial video', platforms:['tt'], status:'idee' },
+  { id:'di2',  title:'Paranteze în paranteze: de unde începți?', desc:'Cum se rezolvă expresiile cu paranteze interioare şi exterioare.', pillar:2, format:'Tutorial video', platforms:['tt'], status:'idee' },
+  { id:'di3',  title:'Împarțirea cu rest: verificarea rezultatului', desc:'Cum verifici corect rezultatul în împărțirea cu rest.', pillar:2, format:'Carusel', platforms:['ig'], status:'idee' },
+  { id:'di4',  title:'Numărul necunoscut: cum alegi operația potrivită?', desc:'Strategia de alegere a operației inverse pentru aflarea necunoscutei.', pillar:2, format:'Tutorial video', platforms:['tt'], status:'idee' },
+  { id:'di5',  title:'Distributivitatea: cum simplifici un calcul?', desc:'Cum folosesc distributivitatea pentru a simplifica expresii numerice.', pillar:2, format:'Tutorial video', platforms:['tt'], status:'idee' },
+  { id:'di6',  title:'Divizor sau multiplu? Diferența prin exemple', desc:'Distincția dintre divizori şi multipli cu exemple concrete pentru clasa a VI-a.', pillar:2, format:'Carusel', platforms:['ig'], status:'idee' },
+  { id:'di7',  title:'Descompunerea în factori primi, pas cu pas', desc:'Metodă clară de descompunere în factori primi pentru clasa a VI-a.', pillar:2, format:'Tutorial video', platforms:['tt'], status:'idee' },
+  { id:'di8',  title:'CMMDC: ce factori alegi şi de ce?', desc:'Regula de alegere a factorilor la calculul CMMDC — prioritate Acum.', pillar:2, format:'Tutorial video', platforms:['tt'], status:'idee' },
+  { id:'di9',  title:'Numere prime între ele: cum le recunoşti?', desc:'Definiție şi exemple pentru numerele prime între ele.', pillar:2, format:'Exemplu explicat', platforms:['tt'], status:'idee' },
+  { id:'di10', title:'Grupe egale: când foloseşti CMMDC?', desc:'Probleme cu împarțire în grupe egale rezolvate cu CMMDC.', pillar:2, format:'Problema explicata', platforms:['yt'], status:'idee' },
+  { id:'di11', title:'Unghiuri opuse la vârf: află măsura necunoscută', desc:'Proprietatea unghiurilor opuse la vârf aplicată în exerciții.', pillar:2, format:'Tutorial video', platforms:['tt'], status:'idee' },
+  { id:'di12', title:'Unghiurile în jurul unui punct: unde folosim 360°?', desc:'Suma unghiurilor în jurul unui punct şi aplicații practice.', pillar:2, format:'Tutorial video', platforms:['tt'], status:'idee' },
+  { id:'di13', title:'Complementare sau suplementare?', desc:'Diferența dintre unghiuri complementare şi suplementare cu exemple.', pillar:2, format:'Carusel comparativ', platforms:['ig'], status:'idee' },
+  { id:'di14', title:'Scoaterea factorilor de sub radical', desc:'Cum se scot factorii de sub radical pentru clasa a VII-a.', pillar:2, format:'Tutorial video', platforms:['tt'], status:'idee' },
+  { id:'di15', title:'De ce simplificăm radicalii înainte să îei adăugăm?', desc:'Logica din spatele simplificării radicalilor înainte de adunare.', pillar:2, format:'Tutorial video', platforms:['tt'], status:'idee' },
+  { id:'di16', title:'Ridicarea la pătrat a numerelor cu radicali', desc:'Cum ridici la pătrat expresii cu radicali fără erori.', pillar:2, format:'Tutorial video', platforms:['tt'], status:'idee' },
+  { id:'di17', title:'Linia mijlocie: ce afli despre lungime şi direcție?', desc:'Proprietatea liniei mijlocii în triunghi aplicate la exerciții.', pillar:2, format:'Explicatie cu desen', platforms:['yt'], status:'idee' },
+  { id:'di18', title:'Soluția unei inecuații: interval şi reprezentare pe axă', desc:'Cum exprimi şi reprezinți pe axă soluția unei inecuații.', pillar:2, format:'Carusel', platforms:['ig'], status:'idee' },
+  { id:'di19', title:'Cum recunoşti şi descrii corpurile geometrice?', desc:'Identificarea şi descrierea corpurilor geometrice pentru clasa a VIII-a.', pillar:2, format:'Explicatie vizuala', platforms:['tt'], status:'idee' },
+  { id:'di20', title:'BAC: determinantul unei matrice de ordinul 2', desc:'Tutorial rapid pentru calculul determinantului — prioritate Acum.', pillar:1, format:'Tutorial video', platforms:['tt'], status:'idee' },
+  { id:'di21', title:'24 : 6 × 2: ce operație faci prima?', desc:'Provocare cu explicatie despre prioritatea împărțirii vs. înmulirii.', pillar:2, format:'Provocare cu explicatie', platforms:['tt'], status:'idee' },
+  { id:'di22', title:'Ai eliminat parantezele corect?', desc:'Exercițiu tip „găseşte greşeala” la eliminarea parantezelor.', pillar:2, format:'Gaseste greseala', platforms:['ig'], status:'idee' },
+  { id:'di23', title:'Poate restul să fie egal cu împărțitorul?', desc:'Întsrebare conceptuală cu exemplu despre restul împărțirii.', pillar:2, format:'Intrebare si exemplu', platforms:['tt'], status:'idee' },
+  { id:'di24', title:'Numărul 1 este prim? Verificăm definiția', desc:'Clarificarea definiției numerelor prime — 1 nu este număr prim.', pillar:2, format:'Explicatie scurta', platforms:['tt'], status:'idee' },
+  { id:'di25', title:'Ai calculat CMMDC sau un multiplu comun?', desc:'Compararea rezolvărilor corecte vs. gresite la CMMDC.', pillar:2, format:'Compararea rezolvarilor', platforms:['tt'], status:'idee' },
+  { id:'di26', title:'CMMDC: alegi exponenții mici sau mari?', desc:'Regula exponenților la CMMDC — carusel cu explicație.', pillar:2, format:'Carusel', platforms:['ig'], status:'idee' },
+  { id:'di27', title:'Numerele prime între ele trebuie să fie prime?', desc:'Contraexemplu: numerele prime între ele nu trebuie să fie prime.', pillar:2, format:'Contraexemplu', platforms:['tt'], status:'idee' },
+  { id:'di28', title:'Unghiuri egale înseamnă unghiuri opuse la vârf?', desc:'Clarificarea confuziei frecvente despre unghiuri egale şi opuse la vârf.', pillar:2, format:'Explicatie cu desen', platforms:['tt'], status:'idee' },
+  { id:'di29', title:'Unghiurile suplementare sunt mereu adiacente?', desc:'Carusel cu desene care clarifică relația dintre suplementare şi adiacente.', pillar:2, format:'Carusel cu desene', platforms:['ig'], status:'idee' },
+  { id:'di30', title:'Ai numărat acelaşi unghi de două ori?', desc:'Greşeala frecventă de a număra acelaşi unghi de două ori.', pillar:2, format:'Gaseste greseala', platforms:['tt'], status:'idee' },
+  { id:'di31', title:'De ce √9 + √16 nu este √25?', desc:'Explicarea erorii clasice la adunarea radicalilor.', pillar:2, format:'Gaseste greseala', platforms:['tt'], status:'idee' },
+  { id:'di32', title:'Poți aduna √2 şi √3 într-un singur radical?', desc:'De ce nu se pot aduna radicali cu termeni diferiți.', pillar:2, format:'Explicatie scurta', platforms:['tt'], status:'idee' },
+  { id:'di33', title:'(−√5)² sau −(√5)²: aceeaşi valoare?', desc:'Provocare despre semnul şi ordinea operațiilor la radicali.', pillar:2, format:'Provocare cu explicatie', platforms:['tt'], status:'idee' },
+  { id:'di34', title:'√(a²) este mereu a? Testăm cu −3', desc:'Carusel care arată că √(a²) = |a|, nu a.', pillar:2, format:'Carusel', platforms:['ig'], status:'idee' },
+  { id:'di35', title:'Uneşte două laturi: este automat linie mijlocie?', desc:'Contraexemplu cu desen: nu orice segment care uneşte laturi este linie mijlocie.', pillar:2, format:'Contraexemplu cu desen', platforms:['tt'], status:'idee' },
+  { id:'di36', title:'Linia mijlocie este jumătate din care latură?', desc:'Greşeala de a confunda baza cu latura paralelă la linia mijlocie.', pillar:2, format:'Gaseste greseala', platforms:['tt'], status:'idee' },
+  { id:'di37', title:'Împarți inecuația la un număr negativ: ce schimbi?', desc:'Regula inversării sensului la împărțirea inecuației la negativ — prioritate Acum.', pillar:2, format:'Tutorial video', platforms:['tt'], status:'idee' },
+  { id:'di38', title:'x < 3 sau x ≤ 3: ce se schimbă pe axă?', desc:'Diferența dintre inegalitate strictă şi largă pe axa numerelor.', pillar:2, format:'Carusel comparativ', platforms:['ig'], status:'idee' },
+  { id:'di39', title:'Muchie sau înălțime? Diferența la piramidă', desc:'Clarificarea diferenței dintre muchia laterală şi înălțimea piramidei.', pillar:2, format:'Explicatie cu desen', platforms:['tt'], status:'idee' },
+  { id:'di40', title:'Determinant: ad − bc sau ad + bc?', desc:'Greşeala frecventă la calculul determinantului de ordinul 2.', pillar:1, format:'Gaseste greseala', platforms:['tt'], status:'idee' },
+  { id:'di41', title:'Antrenament EN: calcul cu numere naturale', desc:'Exercițiu explicat tip Evaluare Națională cu numere naturale.', pillar:0, format:'Exercitiu explicat', platforms:['tt'], status:'idee' },
+  { id:'di42', title:'Verifică răspunsul fără să refaci tot calculul', desc:'Tehnică de verificare rapidă a răspunsului la EN.', pillar:0, format:'Demonstratie practica', platforms:['tt'], status:'idee' },
+  { id:'di43', title:'Problemă cu CMMDC: ce observi în enunț?', desc:'Cum recunoşti că o problemă se rezolvă cu CMMDC din formularea enunțului.', pillar:2, format:'Problema explicata', platforms:['yt'], status:'idee' },
+  { id:'di44', title:'Unghiuri suplementare: cunoşti diferența, afli măsurile', desc:'Exercițiu explicat cu unghiuri suplementare pentru clasele VI–VIII.', pillar:2, format:'Exercitiu explicat', platforms:['tt'], status:'idee' },
+  { id:'di45', title:'Unghiuri opuse la vârf: găseşte necunoscuta x', desc:'Provocare cu rezolvare completă la unghiuri opuse la vârf.', pillar:2, format:'Provocare cu rezolvare', platforms:['tt'], status:'idee' },
+  { id:'di46', title:'Calcul cu radicali: încercă înaintea explicației', desc:'Provocare cu rezolvare completă pentru radicali.', pillar:2, format:'Provocare cu rezolvare', platforms:['tt'], status:'idee' },
+  { id:'di47', title:'Aceeaşi expresie cu radicali, două rezolvări', desc:'Comparatie de metode pentru aceeaşi expresie cu radicali.', pillar:2, format:'Comparatie de metode', platforms:['yt'], status:'idee' },
+  { id:'di48', title:'Linia mijlocie: cum extragi datele din enunț?', desc:'Exercițiu cu desen pentru extragerea datelor la linia mijlocie.', pillar:2, format:'Exercitiu cu desen', platforms:['yt'], status:'idee' },
+  { id:'di49', title:'Inecuație cu paranteze: până la mulțimea soluțiilor', desc:'Tutorial complet: de la inecuația cu paranteze la mulțimea soluțiilor.', pillar:2, format:'Tutorial video', platforms:['tt'], status:'idee' },
+  { id:'di50', title:'Recunoşti corpul geometric din descriere?', desc:'Quiz cu explicație despre identificarea corpurilor geometrice — prioritate Acum.', pillar:2, format:'Quiz cu explicatie', platforms:['tt'], status:'idee' },
+  { id:'di51', title:'Ai calculat corect, dar ai răspuns la întrebare?', desc:'Carusel despre greşeala de a calcula corect dar a nu răspunde la ce se cere.', pillar:0, format:'Carusel cu exemplu', platforms:['ig'], status:'idee' },
+  { id:'di52', title:'Rezultatul nu apare între variante: ce verifici?', desc:'Ce faci la EN când rezultatul tău nu se regăseşte între variantele de răspuns.', pillar:0, format:'Exemplu explicat', platforms:['tt'], status:'idee' },
+  { id:'di53', title:'Cum corectezi un mini-test şi alegi ce repeti', desc:'Tutorial practic pentru corectarea unui mini-test şi planificarea repetiției.', pillar:0, format:'Tutorial practic', platforms:['yt'], status:'idee' },
+  { id:'di54', title:'BAC: determinant cu parametru', desc:'Exercițiu explicat cu determinant care conține parametru.', pillar:1, format:'Exercitiu explicat', platforms:['yt'], status:'idee' },
+  { id:'di55', title:'BAC: când este o matrice inversabilă?', desc:'Condiția de inversabilitate a unei matrice şi aplicații.', pillar:1, format:'Tutorial video', platforms:['tt'], status:'idee' },
+  { id:'di56', title:'BAC: verificarea unei legi de compoziție', desc:'Exercițiu explicat pentru verificarea legilor de compoziție.', pillar:1, format:'Exercitiu explicat', platforms:['yt'], status:'idee' },
+  { id:'di57', title:'BAC: ce formulă de derivare alegi?', desc:'Exemple comparative pentru alegerea formulei de derivare potrivite.', pillar:1, format:'Exemple comparative', platforms:['tt'], status:'idee' },
+  { id:'di58', title:'BAC: semnul derivatei şi monotonia', desc:'Tutorial cu tabel pentru determinarea monotoniei funcției cu derivata.', pillar:1, format:'Tutorial cu tabel', platforms:['yt'], status:'idee' },
+  { id:'di59', title:'BAC: integrală imediată sau substituție?', desc:'Comparatie de metode pentru alegerea tehnicii de integrare.', pillar:1, format:'Comparatie de metode', platforms:['yt'], status:'idee' },
+  { id:'di60', title:'BAC: verifică primitiva prin derivare', desc:'Tutorial: cum verifici primitiva calculată prin derivare.', pillar:1, format:'Tutorial video', platforms:['tt'], status:'idee' },
+  { id:'di61', title:'Vacanță: un exercițiu, o încercare, o verificare', desc:'Provocare practică de vacanță pentru elevii de gimnaziu.', pillar:2, format:'Provocare practica', platforms:['tt'], status:'idee' },
+  { id:'di62', title:'Spui „nu ştiu”? Scrie întâi datele problemei', desc:'Video vorbit cu exemplu: primul pas când nu ştii de unde să începți.', pillar:2, format:'Video vorbit cu exemplu', platforms:['tt'], status:'idee' },
+  { id:'di63', title:'Nu ai rezolvat tot: ce pas ai reuşit?', desc:'Reel vorbit despre progresul parțial la rezolvarea problemelor.', pillar:2, format:'Reel vorbit', platforms:['ig'], status:'idee' },
+  { id:'di64', title:'Ai înțeles explicația? Încercă alte numere', desc:'Provocare practică: verifică înțelegerea schimbând numerele din exemplu.', pillar:2, format:'Provocare practica', platforms:['tt'], status:'idee' },
+  { id:'di65', title:'Cum ceri ajutor când te blochezi la matematică', desc:'Carusel practic despre cum formulezi o întrebare utilă când te blochezi.', pillar:2, format:'Carusel', platforms:['ig'], status:'idee' },
+  { id:'di66', title:'Ce încerci înainte să cauți rezolvarea completă', desc:'Video cu demonstrație: paşii de încercat înainte de a consulta soluția.', pillar:2, format:'Video cu demonstratie', platforms:['tt'], status:'idee' },
+  { id:'di67', title:'Din „nu înțeleg nimic” într-o întrebare precisă', desc:'Video vorbit despre cum transformi o confuzie în întrebare specifică.', pillar:2, format:'Video vorbit', platforms:['tt'], status:'idee' },
+  { id:'di68', title:'Cu ce exercițiu începți când ai lacune?', desc:'Explicație cu exemple despre alegerea exercițiului de start când ai lacune.', pillar:2, format:'Explicatie cu exemple', platforms:['yt'], status:'idee' },
+  { id:'di69', title:'Ai greşit semnul: găseşte primul pas incorect', desc:'Corectare explicată: cum găseşti exact unde ai greşit semnul.', pillar:2, format:'Corectare explicata', platforms:['tt'], status:'idee' },
+  { id:'di70', title:'Ce poți rezolva fără să te uiți la model?', desc:'Provocare în Stories: ce rezolvi independent, fără să consulte modelul.', pillar:2, format:'Provocare in Stories', platforms:['ig'], status:'idee' },
+  { id:'di71', title:'Caietul greşelilor: ce notezi după corectare', desc:'Carusel practic despre cum folosesc un caiet al greşelilor.', pillar:2, format:'Carusel practic', platforms:['ig'], status:'idee' },
+  { id:'di72', title:'Cum împărți o temă în paşi de început', desc:'Video cu exemplu: cum segmentezi o temă în paşi mici de început.', pillar:2, format:'Video cu exemplu', platforms:['tt'], status:'idee' },
+  { id:'di73', title:'După exercițiu: ce am folosit, de ce, ce verific?', desc:'Carusel cu procesul de reflecție după rezolvarea unui exercițiu.', pillar:2, format:'Carusel', platforms:['ig'], status:'idee' },
+  { id:'di74', title:'Provocare de vacanță: explică tu greşeala', desc:'Provocare cu răspuns: elevul explică el greşeala din exercițiu.', pillar:2, format:'Provocare cu raspuns', platforms:['tt'], status:'idee' },
+  { id:'di75', title:'Geometrie: ce faci când desenul nu îți sugerează nimic?', desc:'Video cu desen: paşii de urmat când nu ştii de unde să începți la geometrie.', pillar:2, format:'Video cu desen', platforms:['tt'], status:'idee' },
+  { id:'di76', title:'Observă progresul: compară două încercări', desc:'Carusel cu exemplu despre cum compari două rezolvări pentru a vedea progresul.', pillar:2, format:'Carusel cu exemplu', platforms:['ig'], status:'idee' },
+  { id:'di77', title:'De la aproximativ 3 în simulări la peste 9 la examen', desc:'Poveste de caz reală despre progresul unui elev.', pillar:3, format:'Poveste de caz', platforms:['fb'], status:'idee' },
+  { id:'di78', title:'Cum observ progresul unui elev dincolo de notă', desc:'Video vorbit despre indicatorii reali de progres la matematică.', pillar:3, format:'Video vorbit', platforms:['fb'], status:'idee' },
+  { id:'di79', title:'„Arată-mi unde te-ai blocat”: discuția despre teme', desc:'Postare cu exemplu despre cum abordez tema cu un elev blocat.', pillar:3, format:'Postare cu exemplu', platforms:['fb'], status:'idee' },
+  { id:'di80', title:'Înainte de şcoală: ce vrei să clarifici la matematică?', desc:'Întsrebare în Stories pentru elevi: ce vrei să clarifici înainte de şcoală.', pillar:2, format:'Intrebare in Stories', platforms:['ig'], status:'idee' },
+  { id:'di81', title:'Cum pregătesc sâmbăta videoclipurile săptămânii', desc:'Reel din culise despre procesul de pregătire a videoclipurilor — prioritate Acum.', pillar:6, format:'Reel din culise', platforms:['ig'], status:'idee' },
+  { id:'di82', title:'Ce pregătesc înainte să filmez un exercițiu', desc:'Video din culise despre preparația dinaintea filmării unui exercițiu.', pillar:6, format:'Video din culise', platforms:['tt'], status:'idee' },
+  { id:'di83', title:'De ce am ales actualul design Math More Easy', desc:'Reel cu demonstrație despre alegerile de design ale canalului.', pillar:6, format:'Reel cu demonstratie', platforms:['ig'], status:'idee' },
+  { id:'di84', title:'Ce verific înainte să public o rezolvare', desc:'Video demonstrativ despre procesul de verificare înainte de publicare.', pillar:6, format:'Video demonstrativ', platforms:['tt'], status:'idee' },
+  { id:'di85', title:'Acelaşi exercițiu, două explicații: cum aleg?', desc:'Comparatie explicată între două moduri de a explica acelaşi exercițiu.', pillar:6, format:'Comparatie explicata', platforms:['yt'], status:'idee' },
+  { id:'di86', title:'De ce construiesc platforma Math More Easy', desc:'Video vorbit despre motivul construirii platformei.', pillar:6, format:'Video vorbit', platforms:['fb'], status:'idee' },
+  { id:'di87', title:'Cum verific un exercițiu pentru carte', desc:'Reel din culise despre procesul de verificare a exercițiilor pentru carte.', pillar:6, format:'Reel din culise', platforms:['ig'], status:'idee' },
+  { id:'di88', title:'O pagină din carte înainte şi după verificare', desc:'Carusel care arată procesul de verificare a unei pagini din carte.', pillar:6, format:'Carusel', platforms:['ig'], status:'idee' },
+  { id:'di89', title:'Ce am finalizat săptămâna aceasta la platformă', desc:'Demonstrație video despre progresul săptămânal la platformă.', pillar:6, format:'Demonstratie video', platforms:['fb'], status:'idee' },
+  { id:'di90', title:'Cum aleg subiectele după materia parcursă', desc:'Video vorbit despre cum aleg subiectele în funcție de materia parcursă.', pillar:6, format:'Video vorbit', platforms:['tt'], status:'idee' },
+  { id:'di91', title:'AI propune idei: cum aleg ce transform în lecție', desc:'Demonstrație video despre procesul de selectare a ideilor propuse de AI.', pillar:7, format:'Demonstratie video', platforms:['tt'], status:'idee' },
+  { id:'di92', title:'O explicație propusă de AI: ce păstrez şi ce corectez', desc:'Analiză cu exemplu despre cum editez o explicație generată de AI.', pillar:7, format:'Analiza cu exemplu', platforms:['tt'], status:'idee' },
+  { id:'di93', title:'AI propune exercițiul, eu verific matematica', desc:'Demonstrație explicată despre colaborarea cu AI la crearea exercițiilor.', pillar:7, format:'Demonstratie explicata', platforms:['yt'], status:'idee' },
+  { id:'di94', title:'Cum organizez banca de idei cu ajutorul AI', desc:'Înregistrare de ecran despre organizarea ideilor de content cu AI.', pillar:7, format:'Inregistrare de ecran', platforms:['ig'], status:'idee' },
+  { id:'di95', title:'Schimb numerele: cum verific dacă problema rămâne corectă?', desc:'Demonstrație video: tehnica de a schimba numerele pentru verificarea problemei.', pillar:7, format:'Demonstratie video', platforms:['tt'], status:'idee' },
+  { id:'di96', title:'Ce înseamnă pregătire adaptată copilului în meditațiile mele', desc:'Video cu exemple despre abordarea adaptată la meditații.', pillar:3, format:'Video cu exemple', platforms:['fb'], status:'idee' },
+  { id:'di97', title:'Ce informații îmi trimiți când întrebi despre meditații', desc:'Postare practică pentru părinți despre ce trebuie să comunice la primul contact.', pillar:3, format:'Postare practica', platforms:['fb'], status:'idee' },
+  { id:'di98', title:'Cum foloseşti o explicație MME pentru lucru individual', desc:'Demonstrație practică: cum un elev poate folosi explicațiile MME singur.', pillar:2, format:'Demonstratie practica', platforms:['tt'], status:'idee' },
+  { id:'di99', title:'Ce ofer acum şi ce construiesc pentru viitor', desc:'Prezentare video despre oferta actuală şi planurile de viitor MME.', pillar:5, format:'Prezentare video', platforms:['fb'], status:'idee' },
+  { id:'di100',title:'Ce explic în continuare: CMMDC, unghiuri, radicali sau inecuații?', desc:'Sondaj în Stories pentru a alege următorul subiect de explicat.', pillar:2, format:'Sondaj in Stories', platforms:['ig'], status:'idee' },
+];
+
+// ============================================================
+// STATE
+// ============================================================
+let pillars = [];
+let formats = [];
+let idei    = [];
+let posts   = [];
+let brand   = {};
+let strat   = {};
+let calYear, calMonth; // current calendar view
+let editingIdeaId  = null;
+let editingPostId  = null;
+let calSelectedDate = null;
+let jurnalEntries = [];
+
+// ============================================================
+// VOCE & SCRIPT
+// ============================================================
+const LS_JURNAL = 'mme_jurnal_voce';
+
+function loadJurnal() {
+  jurnalEntries = ls(LS_JURNAL) || [];
+  renderJurnal();
+  // Setează data de azi în formularul jurnal
+  const today = new Date().toISOString().split('T')[0];
+  const jData = document.getElementById('jData');
+  if (jData && !jData.value) jData.value = today;
+}
+
+function genScript() {
+  const subiect  = document.getElementById('vSubiect').value.trim();
+  const nivel    = document.getElementById('vNivel').value;
+  const capcana  = document.getElementById('vCapcana').value.trim();
+  const solutie  = document.getElementById('vSolutie').value.trim();
+  const mesaj    = document.getElementById('vMesaj').value.trim();
+
+  if (!subiect) { alert('Introdu subiectul video.'); return; }
+
+  const nivelLabel = { 'EN':'Evaluare Națională', 'BAC':'Bacalaureat', 'V-VII':'Clase V–VII', 'parinti':'Părinți' }[nivel] || nivel;
+
+  const script = `🎙️ SCRIPT — ${subiect} (${nivelLabel})
+${'─'.repeat(50)}
+
+[INTRO — ton calm, ușor conspirativ]
+"Hai să vorbim despre ${subiect.toLowerCase()}... care pare simplu. Și tocmai de aceea face victime."
+
+[pauză 1.5s]
+
+[ENUNȚ — ritm normal, clar]
+${solutie ? `"Situația cu care ne confruntăm este:"` : `"Iată exercițiul:"` }
+[prezintă exercițiul — vorbește rar, lasă 1s după fiecare pas]
+
+[pauză 2s — lasă să aterizeze]
+
+[CAPCANA — coboară vocea, mai lent, aproape șoptit]
+"Și acum... îți spun exact unde greșesc majoritatea ${nivel === 'parinti' ? 'copiilor' : 'elevilor'}."
+
+[pauză 1s]
+${capcana ? `"${capcana}"` : '[descrie capcana]'}
+
+[pauză 1.5s — tăcere intenționată]
+
+[GREȘEALA FRECVENTĂ — ton neutru, empatic, fără să judeci]
+"Nu pentru că nu știu. Ci pentru că nu au observat detaliul mic."
+
+[pauză 1s]
+
+[SOLUȚIA — ton mai ridicat, energic, sigur]
+${solutie ? solutie.split('→').map((s,i) => `"${i===0?'Corect este: ':'Deci: '}${s.trim()}"`).join('\n[pauză 1s]\n') : '[prezintă soluția pas cu pas]'}
+
+[pauză 1s]
+
+[FINAL — lent, ferm, memorabil]
+"${mesaj || 'Data viitoare când vezi asta, știi exact ce să faci.'}"
+
+${'─'.repeat(50)}
+📌 INDICAȚII VOCALE:
+• Intro + capcană → mai lent, mai jos, ton de secret
+• Greșeala → neutru, empatic, nu acuzator
+• Soluția → mai rapid, mai energic
+• Finalul → o singură propoziție, lent și ferm`;
+
+  document.getElementById('scriptText').textContent = script;
+  document.getElementById('scriptOutput').style.display = 'block';
+  document.getElementById('scriptOutput').scrollIntoView({ behavior:'smooth', block:'start' });
+}
+
+function copyScript() {
+  const text = document.getElementById('scriptText').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = event.target;
+    btn.textContent = '✅ Copiat!';
+    setTimeout(() => btn.textContent = '📋 Copiază', 2000);
+  }).catch(() => {
+    const el = document.getElementById('scriptText');
+    const range = document.createRange();
+    range.selectNode(el);
+    window.getSelection().removeAllRanges();
+    window.getSelection().addRange(range);
+  });
+}
+
+function addJurnal() {
+  const titlu    = document.getElementById('jTitlu').value.trim();
+  const data     = document.getElementById('jData').value;
+  const ritm     = parseInt(document.getElementById('jRitm').value) || 0;
+  const pauze    = parseInt(document.getElementById('jPauze').value) || 0;
+  const energie  = parseInt(document.getElementById('jEnergie').value) || 0;
+  const claritate= parseInt(document.getElementById('jClaritate').value) || 0;
+  const obs      = document.getElementById('jObs').value.trim();
+  const feedback = document.getElementById('jFeedback').value.trim();
+
+  if (!titlu) { alert('Introdu titlul video.'); return; }
+
+  const entry = {
+    id: Date.now(),
+    titlu, data: data || new Date().toISOString().split('T')[0],
+    ritm, pauze, energie, claritate,
+    scor: ritm && pauze && energie && claritate ? Math.round((ritm+pauze+energie+claritate)/4*10)/10 : null,
+    obs, feedback
+  };
+
+  jurnalEntries.unshift(entry);
+  lsSet(LS_JURNAL, jurnalEntries);
+
+  // Reset form
+  ['jTitlu','jRitm','jPauze','jEnergie','jClaritate','jObs','jFeedback'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.value = '';
+  });
+
+  renderJurnal();
+  document.getElementById('jurnalList').scrollIntoView({ behavior:'smooth' });
+}
+
+function deleteJurnal(id) {
+  jurnalEntries = jurnalEntries.filter(e => e.id !== id);
+  lsSet(LS_JURNAL, jurnalEntries);
+  renderJurnal();
+}
+
+function renderJurnal() {
+  const list = document.getElementById('jurnalList');
+  if (!list) return;
+
+  if (!jurnalEntries.length) {
+    list.innerHTML = '<p style="color:var(--fg2);font-size:13px;text-align:center;padding:20px 0;">Nicio înregistrare încă. Filmează primul video și notează aici.</p>';
+    document.getElementById('evolutieChart').style.display = 'none';
+    return;
+  }
+
+  const scoreColor = s => s >= 8 ? 'var(--success)' : s >= 6 ? 'var(--gold)' : 'var(--danger)';
+  const scoreBg    = s => s >= 8 ? 'var(--success-lt)' : s >= 6 ? 'var(--gold-lt)' : 'var(--danger-lt)';
+
+  list.innerHTML = jurnalEntries.map(e => `
+    <div style="border:1px solid var(--border);border-radius:8px;padding:14px;margin-bottom:10px;background:var(--surface2);">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;">
+        <div>
+          <strong style="font-size:14px;">${e.titlu}</strong>
+          <span style="color:var(--fg2);font-size:12px;margin-left:8px;">${e.data}</span>
+        </div>
+        <div style="display:flex;gap:6px;align-items:center;">
+          ${e.scor ? `<span style="background:${scoreBg(e.scor)};color:${scoreColor(e.scor)};padding:2px 10px;border-radius:20px;font-weight:700;font-size:13px;">⭐ ${e.scor}</span>` : ''}
+          <button onclick="deleteJurnal(${e.id})" style="background:none;border:none;cursor:pointer;color:var(--fg3);font-size:16px;">🗑</button>
+        </div>
+      </div>
+      ${e.ritm || e.pauze || e.energie || e.claritate ? `
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:8px;">
+        ${[['Ritm',e.ritm],['Pauze',e.pauze],['Energie',e.energie],['Claritate',e.claritate]].map(([label,val]) => val ? `
+          <div style="text-align:center;background:var(--surface);border-radius:6px;padding:6px;">
+            <div style="font-size:11px;color:var(--fg2);">${label}</div>
+            <div style="font-size:16px;font-weight:700;color:${scoreColor(val)};">${val}</div>
+          </div>` : '').join('')}
+      </div>` : ''}
+      ${e.obs ? `<p style="font-size:12px;color:var(--fg2);margin-bottom:4px;">💬 ${e.obs}</p>` : ''}
+      ${e.feedback ? `<p style="font-size:12px;color:var(--accent);border-left:2px solid var(--accent);padding-left:8px;">🤖 ${e.feedback}</p>` : ''}
+    </div>
+  `).join('');
+
+  // Grafic evoluție
+  renderEvolutieChart();
+}
+
+function renderEvolutieChart() {
+  const canvas = document.getElementById('evolutieChart');
+  if (!canvas || jurnalEntries.length < 2) { canvas.style.display='none'; return; }
+
+  const entries = [...jurnalEntries].reverse().filter(e => e.scor);
+  if (entries.length < 2) { canvas.style.display='none'; return; }
+
+  canvas.style.display = 'block';
+  const ctx = canvas.getContext('2d');
+  const W = canvas.offsetWidth || 600;
+  const H = 200;
+  canvas.width = W;
+  canvas.height = H;
+
+  ctx.clearRect(0,0,W,H);
+
+  const pad = { t:20, r:20, b:40, l:40 };
+  const w = W - pad.l - pad.r;
+  const h = H - pad.t - pad.b;
+
+  const style = getComputedStyle(document.documentElement);
+  const fg2 = style.getPropertyValue('--fg2').trim() || '#888';
+  const accent = style.getPropertyValue('--accent').trim() || '#1D2AB6';
+  const success = style.getPropertyValue('--success').trim() || '#1a7a4a';
+
+  // Grid
+  ctx.strokeStyle = 'rgba(128,128,128,0.15)';
+  ctx.lineWidth = 1;
+  [2,4,6,8,10].forEach(v => {
+    const y = pad.t + h - (v/10)*h;
+    ctx.beginPath(); ctx.moveTo(pad.l, y); ctx.lineTo(pad.l+w, y); ctx.stroke();
+    ctx.fillStyle = fg2; ctx.font = '10px Inter,sans-serif';
+    ctx.textAlign = 'right';
+    ctx.fillText(v, pad.l-4, y+3);
+  });
+
+  const xStep = w / (entries.length - 1);
+
+  // Linii categorii
+  const cats = [
+    { key:'ritm',      color:'#1D2AB6', label:'Ritm' },
+    { key:'pauze',     color:'#c49a00', label:'Pauze' },
+    { key:'energie',   color:'#e53935', label:'Energie' },
+    { key:'claritate', color:'#1a7a4a', label:'Claritate' },
+  ];
+
+  cats.forEach(cat => {
+    const vals = entries.map(e => e[cat.key]);
+    if (!vals.some(v=>v)) return;
+    ctx.strokeStyle = cat.color;
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([4,4]);
+    ctx.beginPath();
+    vals.forEach((v,i) => {
+      if (!v) return;
+      const x = pad.l + i*xStep;
+      const y = pad.t + h - (v/10)*h;
+      i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+    });
+    ctx.stroke();
+  });
+
+  // Linie scor mediu
+  ctx.strokeStyle = accent;
+  ctx.lineWidth = 2.5;
+  ctx.setLineDash([]);
+  ctx.beginPath();
+  entries.forEach((e,i) => {
+    const x = pad.l + i*xStep;
+    const y = pad.t + h - (e.scor/10)*h;
+    i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+  });
+  ctx.stroke();
+
+  // Puncte și etichete date
+  entries.forEach((e,i) => {
+    const x = pad.l + i*xStep;
+    const y = pad.t + h - (e.scor/10)*h;
+    ctx.beginPath();
+    ctx.arc(x, y, 4, 0, Math.PI*2);
+    ctx.fillStyle = accent;
+    ctx.fill();
+    ctx.fillStyle = fg2;
+    ctx.font = '9px Inter,sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(e.data.slice(5), x, H-pad.b+14);
+    ctx.fillStyle = accent;
+    ctx.font = 'bold 10px Inter,sans-serif';
+    ctx.fillText(e.scor, x, y-8);
+  });
+
+  // Legenda
+  let lx = pad.l;
+  [...cats, {color:accent, label:'Scor mediu'}].forEach(c => {
+    ctx.fillStyle = c.color;
+    ctx.fillRect(lx, H-8, 12, 3);
+    ctx.fillStyle = fg2;
+    ctx.font = '9px Inter,sans-serif';
+    ctx.textAlign = 'left';
+    ctx.fillText(c.label, lx+14, H-4);
+    lx += c.label.length*6 + 24;
+  });
+}
+
+// ============================================================
+// LOAD / SAVE
+// ============================================================
+function ls(key)        { try { return JSON.parse(localStorage.getItem(key)); } catch(_){ return null; } }
+function lsSet(key,val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch(_){} }
+
+function loadAll() {
+  pillars = ls(LS.pillars) || DEFAULT_PILLARS;
+  formats = ls(LS.formats) || DEFAULT_FORMATS;
+
+  // La prima deschidere: pre-încarcă datele din Notion
+  const savedPosts = ls(LS.posts);
+  if (!savedPosts || savedPosts.length === 0) {
+    posts = NOTION_POSTS;
+    lsSet(LS.posts, posts);
+  } else {
+    posts = savedPosts;
+  }
+
+  const savedIdei = ls(LS.idei);
+  if (!savedIdei || savedIdei.length === 0) {
+    idei = NOTION_IDEI;
+    lsSet(LS.idei, idei);
+  } else {
+    idei = savedIdei;
+  }
+
+  // Pre-completează pilonii din Notion dacă nu sunt salvați
+  if (!ls(LS.pillars)) {
+    pillars = DEFAULT_PILLARS;
+    lsSet(LS.pillars, pillars);
+  }
+
+  brand = ls(LS.brand) || {
+    name: 'Math More Easy, cu Alina Nistor',
+    tagline: 'Matematica explicată pas cu pas, ca să înțelegi şi să poți rezolva singur. De la „nu ştiu să fac” la „ştiu de unde să încep”.',
+    misiune: 'Ajut elevii să recupereze lacunele la matematică, să înțeleagă explicațiile şi să învețe să aplice ceea ce ştiu în exerciții şi probleme. Îmi adaptez pregătirea la nevoile fiecărui copil, pentru ca acesta să capete încredere, să progreseze la şcoală şi să se pregătească pentru Evaluarea Națională sau Bacalaureat. Prin Math More Easy construiesc resurse educaționale care să îii sprijine şi atunci când lucrează individual, la teme sau pentru examene.',
+    poveste: 'Sunt Alina Nistor, licențiată în matematică şi creatoarea Math More Easy. Am început să ajut elevi mai mici încă din clasa a X-a, iar din 2006 public lecții pe blog. În activitatea mea de meditații lucrez cu elevi din clasele V–XII care au lacune la matematică, întâmpină dificultăți la teme sau îşi doresc rezultate mai bune la examene. Am văzut elevi care, prin pregătire adaptată şi muncă susținută, au câştigat încredere şi şi-au îmbunătățit rezultatele, inclusiv de la aproximativ 3 în simulare la peste 9 la examen. Vreau să dezvolt Math More Easy într-o platformă educațională utilă, prin cursuri şi resurse care îii ajută să înțeleagă matematica şi să lucreze mai independent.',
+    valori: 'Claritate în explicații, empatie, perseverență, seriozitate, respect pentru ritmul elevului, onestitate în prezentarea rezultatelor',
+    public: 'Elevi din clasele V–VIII care au dificultăți la matematică sau se pregătesc pentru Evaluarea Națională, şi elevi de liceu cu accent pe clasa a XII-a şi Bacalaureat. Părinții reprezintă publicul care caută şi cumpară meditațiile.',
+    problema: 'Îi ajut să depăşească dificultățile provocate de lacune, explicații neînțelese şi aplicarea nesigură a regulilor şi teoremelor. Lucrez cu elevi care se blochează la exerciții, nu reuşesc să îşi facă temele, au note mici sau se tem de examene.',
+    dorinta: 'Să înțeleagă matematica, să ştie cum să înceapă un exercițiu şi să poată continua cu mai multă autonomie. Să îşi facă temele, să obțină note mai bune şi să se pregătească pentru Evaluarea Națională sau Bacalaureat.',
+    ton: 'Cald, clar şi direct, cu răbdare în explicații şi seriozitate în pregătire. Vorbesc cu elevul la persoana a II-a singular, folosesc un limbaj accesibil şi păstrez corectitudinea matematică.',
+    antiton: 'Intimidant, superior, grăbit sau dispărețuitor față de greşelile elevului. Nu folosesc ruşinarea, comparațiile între copii sau promisiunile de note garantate. Evit formulările care îii pot invalida dificultatea, precum „este evident”, „e banal” sau „cum să nu ştii asta?”.',
+    cuvinte: 'Claritate, empatie, perseverență.',
+  };
+  strat = ls(LS.strategie) || {
+    obiectiv: 'Creşterea audienței pe TikTok şi Instagram, lansarea cursurilor online pentru Evaluarea Națională şi BAC, atragerea elevilor la meditații şi construirea unui sistem de învățare complet prin Math More Easy.',
+    platforms: ['ig','tt','fb','yt'],
+  };
+
+  // apply saved theme
+  const t = ls(LS.theme);
+  if (t) document.documentElement.setAttribute('data-theme', t);
+
+  // calendar defaults to current month
+  const now = new Date();
+  calYear  = now.getFullYear();
+  calMonth = now.getMonth();
+}
+
+// ============================================================
+// TABS
+// ============================================================
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('tab-' + btn.dataset.tab).classList.add('active');
+    if (btn.dataset.tab === 'calendar') renderCalendar();
+    if (btn.dataset.tab === 'analiza') renderAnalytics();
+    if (btn.dataset.tab === 'idei') renderIdei();
+    if (btn.dataset.tab === 'strategie') renderStrategie();
+    if (btn.dataset.tab === 'brand') renderBrand();
+    if (btn.dataset.tab === 'voce') { loadJurnal(); renderEvolutieChart(); }
+  });
+});
+
+// ============================================================
+// THEME
+// ============================================================
+function toggleTheme() {
+  const curr = document.documentElement.getAttribute('data-theme');
+  const next = curr === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', next);
+  lsSet(LS.theme, next);
+}
+
+// ============================================================
+// TOAST
+// ============================================================
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2400);
+}
+
+// ============================================================
+// BRAND
+// ============================================================
+function renderBrand() {
+  document.getElementById('bName').value     = brand.name     || '';
+  document.getElementById('bTagline').value  = brand.tagline  || '';
+  document.getElementById('bMisiune').value  = brand.misiune  || '';
+  document.getElementById('bPoveste').value  = brand.poveste  || '';
+  document.getElementById('bValori').value   = brand.valori   || '';
+  document.getElementById('bPublic').value   = brand.public   || '';
+  document.getElementById('bProblema').value = brand.problema || '';
+  document.getElementById('bDorint').value   = brand.dorinta  || '';
+  document.getElementById('bTon').value      = brand.ton      || '';
+  document.getElementById('bAntiton').value  = brand.antiton  || '';
+  document.getElementById('bCuvinte').value  = brand.cuvinte  || '';
+  updateBrandHero();
+}
+function updateBrandHero() {
+  document.getElementById('brandNameDisplay').textContent    = brand.name    || 'Math More Easy';
+  document.getElementById('brandTaglineDisplay').textContent = brand.tagline || 'Matematica pe înțelesul oricărui copil';
+}
+function saveBrand() {
+  brand.name    = document.getElementById('bName').value.trim();
+  brand.tagline = document.getElementById('bTagline').value.trim();
+  brand.misiune = document.getElementById('bMisiune').value.trim();
+  brand.poveste = document.getElementById('bPoveste').value.trim();
+  brand.valori  = document.getElementById('bValori').value.trim();
+  lsSet(LS.brand, brand); updateBrandHero(); showToast('Brand salvat ✓');
+}
+function savePublic() {
+  brand.public   = document.getElementById('bPublic').value.trim();
+  brand.problema = document.getElementById('bProblema').value.trim();
+  brand.dorinta  = document.getElementById('bDorint').value.trim();
+  lsSet(LS.brand, brand); showToast('Public salvat ✓');
+}
+function saveVoce() {
+  brand.ton     = document.getElementById('bTon').value;
+  brand.antiton = document.getElementById('bAntiton').value.trim();
+  brand.cuvinte = document.getElementById('bCuvinte').value.trim();
+  lsSet(LS.brand, brand); showToast('Voce salvată ✓');
+}
+
+// ============================================================
+// STRATEGIE
+// ============================================================
+function renderStrategie() {
+  renderPillars();
+  renderFormats();
+  document.getElementById('sFrequency').value = strat.frequency || '2';
+  document.getElementById('sObiectiv').value  = strat.obiectiv  || '';
+  document.getElementById('sNote').value      = strat.note      || '';
+  // platform toggles
+  ['ig','tt','fb'].forEach(p => {
+    const btn = document.querySelector(`#stratPlatforms [data-plat="${p}"]`);
+    const active = !strat.platforms || strat.platforms.includes(p);
+    btn.className = `platform-toggle${active ? ` on-${p}` : ''}`;
+  });
+}
+function toggleStratPlat(btn) {
+  const p = btn.dataset.plat;
+  const cls = `on-${p}`;
+  btn.classList.toggle(cls);
+}
+function saveStrategie() {
+  strat.frequency = document.getElementById('sFrequency').value;
+  strat.obiectiv  = document.getElementById('sObiectiv').value.trim();
+  strat.note      = document.getElementById('sNote').value.trim();
+  strat.platforms = ['ig','tt','fb'].filter(p =>
+    document.querySelector(`#stratPlatforms [data-plat="${p}"]`).classList.contains(`on-${p}`)
+  );
+  lsSet(LS.strategie, strat); showToast('Strategie salvată ✓');
+}
+
+// ============================================================
+// PILLARS
+// ============================================================
+function renderPillars() {
+  const grid = document.getElementById('pillarsGrid');
+  grid.innerHTML = pillars.map((p,i) => `
+    <div class="pillar-chip" style="--chip-color:${p.color}">
+      <span class="pillar-emoji">${p.emoji}</span>
+      <div class="pillar-name">${p.name}</div>
+      <div class="pillar-desc">${p.desc}</div>
+      <button class="pillar-edit-btn" onclick="event.stopPropagation();editPillar(${i})" title="Editează">✏️</button>
+    </div>
+  `).join('');
+  populatePillarSelects();
+}
+function populatePillarSelects() {
+  ['iPilon','calPilon','filterPillar'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const cur = el.value;
+    const opts = pillars.map((p,i) => `<option value="${i}">${p.emoji} ${p.name}</option>`).join('');
+    el.innerHTML = (id === 'filterPillar' ? '<option value="">Toți pilonii</option>' : '<option value="">Alege pilon...</option>') + opts;
+    el.value = cur;
+  });
+}
+function addPillar() {
+  editingPillarIdx = -1;
+  document.getElementById('pIdx').value   = -1;
+  document.getElementById('pEmoji').value = '📚';
+  document.getElementById('pName').value  = '';
+  document.getElementById('pDesc').value  = '';
+  document.getElementById('pColor').value = '#1D2AB6';
+  document.getElementById('pillarModal').hidden = false;
+}
+function editPillar(i) {
+  const p = pillars[i];
+  document.getElementById('pIdx').value   = i;
+  document.getElementById('pEmoji').value = p.emoji;
+  document.getElementById('pName').value  = p.name;
+  document.getElementById('pDesc').value  = p.desc;
+  document.getElementById('pColor').value = p.color;
+  document.getElementById('pillarModal').hidden = false;
+}
+function savePillar() {
+  const i   = parseInt(document.getElementById('pIdx').value);
+  const obj = {
+    emoji: document.getElementById('pEmoji').value.trim() || '📌',
+    name:  document.getElementById('pName').value.trim(),
+    desc:  document.getElementById('pDesc').value.trim(),
+    color: document.getElementById('pColor').value,
+  };
+  if (!obj.name) { showToast('Introdu un nume pentru pilon'); return; }
+  if (i === -1) pillars.push(obj);
+  else pillars[i] = obj;
+  lsSet(LS.pillars, pillars);
+  renderPillars();
+  closePillarModal();
+  showToast('Pilon salvat ✓');
+}
+function deletePillar() {
+  const i = parseInt(document.getElementById('pIdx').value);
+  if (i < 0) { closePillarModal(); return; }
+  pillars.splice(i, 1);
+  lsSet(LS.pillars, pillars);
+  renderPillars();
+  closePillarModal();
+  showToast('Pilon șters');
+}
+function closePillarModal() { document.getElementById('pillarModal').hidden = true; }
+
+// ============================================================
+// FORMATS
+// ============================================================
+function renderFormats() {
+  const list = document.getElementById('formateList');
+  list.innerHTML = formats.map((f,i) => `
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span style="flex:1;font-size:13px;">• ${f}</span>
+      <button class="btn btn-secondary btn-sm" onclick="editFormat(${i})">✏️</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteFormat(${i})">🗑️</button>
+    </div>
+  `).join('');
+  populateFormatSelects();
+}
+function populateFormatSelects() {
+  ['iFormat','calFormat'].forEach(id => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const cur = el.value;
+    el.innerHTML = '<option value="">Alege format...</option>' + formats.map(f => `<option value="${f}">${f}</option>`).join('');
+    el.value = cur;
+  });
+}
+function addFormat() {
+  const f = prompt('Nume format nou:');
+  if (!f || !f.trim()) return;
+  formats.push(f.trim());
+  lsSet(LS.formats, formats);
+  renderFormats();
+}
+function editFormat(i) {
+  const f = prompt('Editează format:', formats[i]);
+  if (f === null) return;
+  formats[i] = f.trim();
+  lsSet(LS.formats, formats);
+  renderFormats();
+}
+function deleteFormat(i) {
+  formats.splice(i, 1);
+  lsSet(LS.formats, formats);
+  renderFormats();
+}
+
+// ============================================================
+// IDEI
+// ============================================================
+function renderIdei() {
+  populatePillarSelects();
+  const search  = (document.getElementById('ideaSearch').value || '').toLowerCase();
+  const pillarF = document.getElementById('filterPillar').value;
+  const statusF = document.getElementById('filterStatus').value;
+  const platF   = document.getElementById('filterPlat').value;
+
+  let list = [...idei].reverse().filter(idea => {
+    if (search   && !idea.title.toLowerCase().includes(search) && !(idea.desc||'').toLowerCase().includes(search)) return false;
+    if (pillarF  && String(idea.pillar) !== pillarF) return false;
+    if (statusF  && idea.status !== statusF) return false;
+    if (platF    && !(idea.platforms||[]).includes(platF)) return false;
+    return true;
+  });
+
+  const container = document.getElementById('ideaList');
+  if (!list.length) {
+    container.innerHTML = `<div class="empty-state"><div class="empty-icon">💡</div><h3>Nicio idee găsită</h3><p>Adaugă prima idee sau modifică filtrele.</p></div>`;
+    return;
+  }
+  container.innerHTML = list.map(idea => {
+    const p = pillars[idea.pillar];
+    const color = p ? p.color : 'var(--accent)';
+    const pname = p ? `${p.emoji} ${p.name}` : '';
+    const plats = (idea.platforms||[]).map(pl => platTag(pl)).join('');
+    const statusLabel = { idee:'💭 Idee brută', rafinat:'✏️ De rafinat', gata:'✅ Gata', postat:'📤 Postat' }[idea.status] || idea.status;
+    return `
+      <div class="idea-card" style="--pillar-color:${color}">
+        <div class="idea-meta">
+          <div class="idea-title">${escHtml(idea.title)}</div>
+          ${idea.desc ? `<div style="font-size:12px;color:var(--fg2);margin-top:2px;">${escHtml(idea.desc.substring(0,100))}${idea.desc.length>100?'...':''}</div>` : ''}
+          <div class="idea-tags">
+            ${pname ? `<span class="tag">${pname}</span>` : ''}
+            ${idea.format ? `<span class="tag">${escHtml(idea.format)}</span>` : ''}
+            ${plats}
+            ${idea.data ? `<span class="tag">📅 ${idea.data}</span>` : ''}
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+          <span class="status-badge status-${idea.status}">${statusLabel}</span>
+          <div style="display:flex;gap:4px;">
+            <button class="btn btn-secondary btn-sm" onclick="openIdeaModal('${idea.id}')">✏️</button>
+            <button class="btn btn-gold btn-sm" title="Pune în calendar" onclick="addToCalFromIdea('${idea.id}')">📅</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteIdea('${idea.id}')">🗑️</button>
+          </div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+function platTag(p) {
+  const m = { ig:'📸 IG', tt:'🎵 TT', fb:'👥 FB' };
+  return `<span class="tag tag-${p}">${m[p]||p}</span>`;
+}
+function openIdeaModal(id) {
+  editingIdeaId = id || null;
+  const idea = id ? idei.find(i => i.id === id) : null;
+  document.getElementById('ideaModalTitle').textContent = idea ? '✏️ Editează idee' : '💡 Idee nouă';
+  document.getElementById('iTitle').value  = idea ? idea.title  : '';
+  document.getElementById('iDesc').value   = idea ? (idea.desc||'') : '';
+  document.getElementById('iStatus').value = idea ? idea.status : 'idee';
+  document.getElementById('iData').value   = idea ? (idea.data||'') : '';
+  populatePillarSelects();
+  populateFormatSelects();
+  document.getElementById('iPilon').value  = idea ? (idea.pillar !== undefined ? idea.pillar : '') : '';
+  document.getElementById('iFormat').value = idea ? (idea.format||'') : '';
+  // platforms
+  document.querySelectorAll('#iPlats .platform-toggle').forEach(btn => {
+    const p = btn.dataset.plat;
+    const on = idea ? (idea.platforms||[]).includes(p) : false;
+    btn.className = `platform-toggle${on ? ` on-${p}` : ''}`;
+  });
+  document.getElementById('ideaModal').hidden = false;
+  document.getElementById('iTitle').focus();
+}
+function closeIdeaModal() { document.getElementById('ideaModal').hidden = true; }
+function toggleIdeaPlat(btn) {
+  const p = btn.dataset.plat;
+  btn.classList.toggle(`on-${p}`);
+}
+function saveIdea() {
+  const title = document.getElementById('iTitle').value.trim();
+  if (!title) { showToast('Introdu un titlu'); return; }
+  const plats = [...document.querySelectorAll('#iPlats .platform-toggle')]
+    .filter(b => b.classList.contains(`on-${b.dataset.plat}`))
+    .map(b => b.dataset.plat);
+  const obj = {
+    id:        editingIdeaId || `idea_${Date.now()}`,
+    title,
+    desc:      document.getElementById('iDesc').value.trim(),
+    pillar:    document.getElementById('iPilon').value !== '' ? parseInt(document.getElementById('iPilon').value) : undefined,
+    format:    document.getElementById('iFormat').value,
+    platforms: plats,
+    status:    document.getElementById('iStatus').value,
+    data:      document.getElementById('iData').value,
+  };
+  if (editingIdeaId) {
+    const idx = idei.findIndex(i => i.id === editingIdeaId);
+    if (idx >= 0) idei[idx] = obj; else idei.push(obj);
+  } else {
+    idei.push(obj);
+  }
+  lsSet(LS.idei, idei);
+  closeIdeaModal();
+  renderIdei();
+  showToast(editingIdeaId ? 'Idee actualizată ✓' : 'Idee adăugată ✓');
+}
+function deleteIdea(id) {
+  idei = idei.filter(i => i.id !== id);
+  lsSet(LS.idei, idei);
+  renderIdei();
+  showToast('Idee ștearsă');
+}
+function addToCalFromIdea(ideaId) {
+  const idea = idei.find(i => i.id === ideaId);
+  if (!idea) return;
+  openCalModal(idea.data || null, null, idea);
+}
+
+// ============================================================
+// CALENDAR
+// ============================================================
+const MONTHS_RO = ['Ianuarie','Februarie','Martie','Aprilie','Mai','Iunie','Iulie','August','Septembrie','Octombrie','Noiembrie','Decembrie'];
+function changeMonth(dir) {
+  calMonth += dir;
+  if (calMonth > 11) { calMonth = 0; calYear++; }
+  if (calMonth < 0)  { calMonth = 11; calYear--; }
+  renderCalendar();
+}
+function renderCalendar() {
+  document.getElementById('calMonthLabel').textContent = `${MONTHS_RO[calMonth]} ${calYear}`;
+  const grid = document.getElementById('calGrid');
+  // keep headers
+  const headers = [...grid.querySelectorAll('.cal-day-header')];
+  grid.innerHTML = '';
+  headers.forEach(h => grid.appendChild(h));
+
+  const firstDay = new Date(calYear, calMonth, 1);
+  const lastDay  = new Date(calYear, calMonth+1, 0);
+  const today    = new Date();
+
+  // start on Monday
+  let startDow = firstDay.getDay(); // 0=Sun
+  if (startDow === 0) startDow = 7;
+  for (let i = 1; i < startDow; i++) {
+    const d = new Date(calYear, calMonth, 1-startDow+i);
+    grid.appendChild(makeDayCell(d, true));
+  }
+  for (let d = 1; d <= lastDay.getDate(); d++) {
+    const date = new Date(calYear, calMonth, d);
+    const isToday = date.toDateString() === today.toDateString();
+    grid.appendChild(makeDayCell(date, false, isToday));
+  }
+  // fill end
+  const endDow = lastDay.getDay() || 7;
+  for (let i = endDow+1; i <= 7; i++) {
+    const d = new Date(calYear, calMonth+1, i-endDow);
+    grid.appendChild(makeDayCell(d, true));
+  }
+
+  renderCalMonthList();
+}
+function makeDayCell(date, otherMonth, isToday) {
+  const dateStr = formatDate(date);
+  const dayPosts = posts.filter(p => p.date === dateStr);
+  const cell = document.createElement('div');
+  cell.className = `cal-day${otherMonth ? ' other-month' : ''}${isToday ? ' today' : ''}`;
+  if (!otherMonth) cell.onclick = () => openCalModal(dateStr);
+
+  cell.innerHTML = `<div class="cal-day-num">${date.getDate()}</div>`;
+  dayPosts.forEach(p => {
+    const pillar = pillars[p.pillar];
+    const color  = pillar ? pillar.color : '#1D2AB6';
+    const dot = document.createElement('div');
+    dot.className = 'cal-post-dot';
+    dot.style.setProperty('--dot-color', color);
+    dot.textContent = (pillar ? pillar.emoji + ' ' : '') + p.title;
+    dot.onclick = e => { e.stopPropagation(); openCalModal(dateStr, p.id); };
+    cell.appendChild(dot);
+  });
+
+  if (!otherMonth) {
+    const btn = document.createElement('div');
+    btn.className = 'cal-add-btn';
+    btn.textContent = '+';
+    btn.onclick = e => { e.stopPropagation(); openCalModal(dateStr); };
+    cell.appendChild(btn);
+  }
+  return cell;
+}
+function formatDate(d) {
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function renderCalMonthList() {
+  const prefix = `${calYear}-${String(calMonth+1).padStart(2,'0')}`;
+  const mp = posts.filter(p => p.date && p.date.startsWith(prefix)).sort((a,b) => a.date.localeCompare(b.date));
+  const el = document.getElementById('calMonthList');
+  if (!mp.length) { el.innerHTML = '<div style="color:var(--fg2);font-size:13px;padding:8px 0;">Nicio postare planificată în această lună.</div>'; return; }
+  el.innerHTML = mp.map(p => {
+    const pillar = pillars[p.pillar];
+    const color  = pillar ? pillar.color : 'var(--accent)';
+    const statusLabel = { planificat:'📅', gata:'✅', postat:'📤' }[p.status] || '';
+    return `
+      <div class="idea-card" style="--pillar-color:${color}">
+        <div class="idea-meta">
+          <div class="idea-title">${statusLabel} ${escHtml(p.title)}</div>
+          <div class="idea-tags">
+            <span class="tag">📅 ${p.date}</span>
+            ${pillar ? `<span class="tag">${pillar.emoji} ${pillar.name}</span>` : ''}
+            ${p.format ? `<span class="tag">${escHtml(p.format)}</span>` : ''}
+            ${(p.platforms||[]).map(pl => platTag(pl)).join('')}
+          </div>
+        </div>
+        <div style="display:flex;gap:4px;flex-shrink:0;">
+          <button class="btn btn-secondary btn-sm" onclick="openCalModal('${p.date}','${p.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" onclick="deleteCalPostDirect('${p.id}')">🗑️</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+function openCalModal(date, postId, prefillIdea) {
+  editingPostId = postId || null;
+  const post = postId ? posts.find(p => p.id === postId) : null;
+
+  // populate idea select
+  const sel = document.getElementById('calIdeaSel');
+  sel.innerHTML = '<option value="">-- alege o idee existentă --</option>' +
+    idei.filter(i => i.status !== 'postat').map(i => `<option value="${i.id}">${escHtml(i.title)}</option>`).join('');
+
+  document.getElementById('calModalTitle').textContent = post ? '✏️ Editează postare' : '📅 Adaugă postare';
+  document.getElementById('calDate').value   = post ? post.date   : (date || '');
+  document.getElementById('calTitle').value  = post ? post.title  : (prefillIdea ? prefillIdea.title : '');
+  document.getElementById('calNote').value   = post ? (post.note||'') : '';
+  document.getElementById('calStatus').value = post ? post.status : 'planificat';
+  document.getElementById('calIdeaSel').value = '';
+  populatePillarSelects();
+  populateFormatSelects();
+  document.getElementById('calPilon').value  = post ? (post.pillar !== undefined ? post.pillar : '') : (prefillIdea && prefillIdea.pillar !== undefined ? prefillIdea.pillar : '');
+  document.getElementById('calFormat').value = post ? (post.format||'') : (prefillIdea ? (prefillIdea.format||'') : '');
+  document.querySelectorAll('#calPlats .platform-toggle').forEach(btn => {
+    const p = btn.dataset.plat;
+    const src = post ? post.platforms : (prefillIdea ? prefillIdea.platforms : []);
+    const on = (src||[]).includes(p);
+    btn.className = `platform-toggle${on ? ` on-${p}` : ''}`;
+  });
+  document.getElementById('calDeleteBtn').hidden = !post;
+  document.getElementById('calModal').hidden = false;
+}
+function fillFromIdea() {
+  const id = document.getElementById('calIdeaSel').value;
+  if (!id) return;
+  const idea = idei.find(i => i.id === id);
+  if (!idea) return;
+  document.getElementById('calTitle').value = idea.title;
+  document.getElementById('calPilon').value = idea.pillar !== undefined ? idea.pillar : '';
+  document.getElementById('calFormat').value = idea.format || '';
+  document.querySelectorAll('#calPlats .platform-toggle').forEach(btn => {
+    const p = btn.dataset.plat;
+    const on = (idea.platforms||[]).includes(p);
+    btn.className = `platform-toggle${on ? ` on-${p}` : ''}`;
+  });
+}
+function toggleCalPlat(btn) {
+  const p = btn.dataset.plat;
+  btn.classList.toggle(`on-${p}`);
+}
+function saveCalPost() {
+  const title = document.getElementById('calTitle').value.trim();
+  const date  = document.getElementById('calDate').value;
+  if (!title) { showToast('Introdu un titlu'); return; }
+  if (!date)  { showToast('Alege o dată'); return; }
+  const plats = [...document.querySelectorAll('#calPlats .platform-toggle')]
+    .filter(b => b.classList.contains(`on-${b.dataset.plat}`)).map(b => b.dataset.plat);
+  const obj = {
+    id:        editingPostId || `post_${Date.now()}`,
+    date,
+    title,
+    note:      document.getElementById('calNote').value.trim(),
+    pillar:    document.getElementById('calPilon').value !== '' ? parseInt(document.getElementById('calPilon').value) : undefined,
+    format:    document.getElementById('calFormat').value,
+    platforms: plats,
+    status:    document.getElementById('calStatus').value,
+  };
+  if (editingPostId) {
+    const idx = posts.findIndex(p => p.id === editingPostId);
+    if (idx >= 0) posts[idx] = obj; else posts.push(obj);
+  } else {
+    posts.push(obj);
+  }
+  lsSet(LS.posts, posts);
+  closeCalModal();
+  renderCalendar();
+  showToast(editingPostId ? 'Postare actualizată ✓' : 'Postare adăugată ✓');
+}
+function deleteCalPost() {
+  if (!editingPostId) return;
+  deleteCalPostDirect(editingPostId);
+  closeCalModal();
+}
+function deleteCalPostDirect(id) {
+  posts = posts.filter(p => p.id !== id);
+  lsSet(LS.posts, posts);
+  renderCalendar();
+  showToast('Postare ștearsă');
+}
+function closeCalModal() { document.getElementById('calModal').hidden = true; }
+
+// ============================================================
+// ANALYTICS
+// ============================================================
+function renderAnalytics() {
+  const total   = posts.length;
+  const postate = posts.filter(p => p.status === 'postat').length;
+  const luna    = posts.filter(p => p.date && p.date.startsWith(`${calYear}-${String(calMonth+1).padStart(2,'0')}`)).length;
+  const ideas_t = idei.length;
+
+  document.getElementById('statsGrid').innerHTML = `
+    <div class="stat-tile"><div class="stat-val">${total}</div><div class="stat-lbl">Postări planificate</div></div>
+    <div class="stat-tile"><div class="stat-val">${postate}</div><div class="stat-lbl">Postări publicate</div></div>
+    <div class="stat-tile"><div class="stat-val">${luna}</div><div class="stat-lbl">Luna curentă</div></div>
+    <div class="stat-tile"><div class="stat-val">${ideas_t}</div><div class="stat-lbl">Idei în bancă</div></div>
+  `;
+
+  // by pillar
+  const byPillar = {};
+  posts.forEach(p => {
+    const k = p.pillar !== undefined ? p.pillar : -1;
+    byPillar[k] = (byPillar[k] || 0) + 1;
+  });
+  const maxP = Math.max(1, ...Object.values(byPillar));
+  document.getElementById('pillarChart').innerHTML = Object.entries(byPillar).map(([k,v]) => {
+    const p = pillars[k];
+    const lbl = p ? `${p.emoji} ${p.name}` : 'Fără pilon';
+    const color = p ? p.color : 'var(--fg3)';
+    return `<div class="bar-row">
+      <span class="bar-lbl" title="${lbl}">${lbl}</span>
+      <div class="bar-outer"><div class="bar-inner" style="width:${(v/maxP*100).toFixed(1)}%;background:${color}"></div></div>
+      <span class="bar-count">${v}</span>
+    </div>`;
+  }).join('') || '<div style="color:var(--fg2);font-size:13px;">Nicio postare încă.</div>';
+
+  // by platform
+  const byPlat = { ig:0, tt:0, fb:0 };
+  posts.forEach(p => (p.platforms||[]).forEach(pl => { byPlat[pl] = (byPlat[pl]||0)+1; }));
+  const maxPl = Math.max(1, ...Object.values(byPlat));
+  const platNames = { ig:'📸 Instagram', tt:'🎵 TikTok', fb:'👥 Facebook' };
+  const platColors = { ig:'#c2185b', tt:'#1b5e20', fb:'#0d47a1' };
+  document.getElementById('platChart').innerHTML = Object.entries(byPlat).map(([k,v]) => `
+    <div class="bar-row">
+      <span class="bar-lbl">${platNames[k]||k}</span>
+      <div class="bar-outer"><div class="bar-inner" style="width:${(v/maxPl*100).toFixed(1)}%;background:${platColors[k]||'var(--accent)'}"></div></div>
+      <span class="bar-count">${v}</span>
+    </div>
+  `).join('');
+
+  // by month
+  const byMonth = {};
+  posts.forEach(p => {
+    if (!p.date) return;
+    const m = p.date.substring(0,7);
+    byMonth[m] = (byMonth[m]||0)+1;
+  });
+  const months = Object.keys(byMonth).sort();
+  const maxM = Math.max(1, ...Object.values(byMonth));
+  document.getElementById('monthChart').innerHTML = months.map(m => {
+    const [y,mo] = m.split('-');
+    const lbl = `${MONTHS_RO[parseInt(mo)-1]} ${y}`;
+    return `<div class="bar-row">
+      <span class="bar-lbl">${lbl}</span>
+      <div class="bar-outer"><div class="bar-inner" style="width:${(byMonth[m]/maxM*100).toFixed(1)}%"></div></div>
+      <span class="bar-count">${byMonth[m]}</span>
+    </div>`;
+  }).join('') || '<div style="color:var(--fg2);font-size:13px;">Nicio postare încă.</div>';
+}
+
+// ============================================================
+// UTILS
+// ============================================================
+function escHtml(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ============================================================
+// INIT
+// ============================================================
+loadAll();
+loadJurnal();
+renderBrand();
+renderIdei();
+renderCalendar();
+</script>
+</body>
+</html>
